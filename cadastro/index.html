@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cadastro Avellar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --panel:#ffffff; --panel2:#f7f2f3; --line:#e3d4d7; --fg:#1f1416; --muted:#6b575b;
+  --accent:#c4163a; --accentfg:#ffffff; --brand2:#f05a22; --ok:#1e7a3a; --okbg:#e8f5eb;
+  --bad:#c4162a; --badbg:#fde8eb; --warn:#a9500c;
+  --display:"Space Grotesk",system-ui,sans-serif; --text:"Inter",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--text);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+body{min-height:100vh}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 120px}
+header.top{display:flex;align-items:center;gap:12px;padding:8px 0 14px}
+.logo{width:46px;height:46px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none;overflow:hidden}
+.logo img{width:40px;height:auto}
+.brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.2px}
+.brand small{display:block;font-family:var(--text);font-weight:500;font-size:12px;color:var(--muted)}
+.bar{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--brand2));transition:width .3s}
+.stepinfo{font-size:13px;color:var(--muted);margin-bottom:14px}
+h1{font-family:var(--display);font-size:26px;line-height:1.15;margin:6px 0 6px}
+h2{font-family:var(--display);font-size:18px;margin:22px 0 8px;color:var(--fg)}
+p.lead{color:var(--muted);margin:0 0 18px}
+.card{background:var(--panel);border:1px solid var(--line);box-shadow:0 1px 3px rgba(60,20,30,.06);border-radius:16px;padding:16px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid .full{grid-column:1/-1}
+@media (max-width:380px){.grid{grid-template-columns:1fr}.grid .half{grid-column:1/-1}}
+.fld label.l{display:block;font-size:14px;font-weight:600;margin:0 0 6px}
+.fld label.l .req{color:var(--accent)}
+.fld .hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+.fld .err{font-size:13px;color:var(--bad);margin-top:4px;display:none}
+.fld.bad .err{display:block}
+.fld.bad input,.fld.bad select,.fld.bad textarea{border-color:var(--bad)}
+input,select,textarea{width:100%;font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:13px 14px;outline:none;appearance:none;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(196,22,58,.22)}
+input[type=date]{min-height:50px}
+textarea{min-height:84px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;padding:11px 15px;border:1px solid var(--line);border-radius:99px;background:var(--bg);font-size:15px;cursor:pointer;user-select:none}
+.chip input:checked+span{background:var(--accent);border-color:var(--accent);color:var(--accentfg);font-weight:600}
+.chip input:focus-visible+span{box-shadow:0 0 0 3px rgba(196,22,58,.35)}
+.big{display:grid;gap:10px}
+.big .chip span{display:block;border-radius:14px;padding:16px;font-size:16px}
+.big .chip span b{display:block;font-family:var(--display);font-size:18px}
+.big .chip span em{font-style:normal;font-size:13px;color:var(--muted)}
+.big .chip input:checked+span em{color:rgba(255,255,255,.88)}
+.rep{border:1px dashed var(--line);border-radius:14px;padding:14px;margin:0 0 12px;background:var(--panel2)}
+.rep-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:600;font-size:16px;border-radius:14px;padding:14px 18px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accentfg)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:8px 12px;font-size:14px;border-radius:10px}
+.btn:disabled{opacity:.5;cursor:default}
+.nav{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(255,255,255,0),var(--bg) 30%);padding:22px 16px calc(16px + env(safe-area-inset-bottom))}
+.nav .in{max-width:560px;margin:0 auto;display:flex;gap:10px}
+.nav .in .btn{flex:1}
+.nav .in .btn.back{flex:0 0 auto}
+.total{display:flex;justify-content:space-between;padding:12px 14px;border-radius:12px;background:var(--okbg);color:var(--ok);font-weight:600}
+.doc{display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--bg);margin-bottom:10px}
+.doc .t{font-weight:600}
+.doc .t .req{color:var(--accent)}
+.doc .files{display:flex;flex-direction:column;gap:6px}
+.doc .file{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px;background:var(--panel2);padding:8px 10px;border-radius:10px}
+.doc .file span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc label.add{align-self:flex-start}
+.doc input[type=file]{display:none}
+.ok{color:var(--ok)} .warn{color:var(--warn)} .muted{color:var(--muted)}
+.note{font-size:13.5px;color:var(--muted);background:var(--panel2);border-radius:12px;padding:12px 14px;margin:0 0 14px}
+.list{margin:0;padding-left:20px} .list li{margin:4px 0}
+.sum-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.sum-row:last-child{border-bottom:0}
+.consent{display:flex;gap:12px;align-items:flex-start;font-size:14px}
+.consent input{width:24px;height:24px;flex:none;margin-top:2px;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--accent)}
+.banner{background:var(--badbg);color:var(--bad);padding:10px 14px;border-radius:12px;font-size:14px;margin-bottom:14px}
+.prev{background:#fff3e6;color:var(--warn);padding:8px 12px;border-radius:10px;font-size:12.5px;margin-bottom:10px}
+.center{text-align:center}
+.done-ic{width:72px;height:72px;border-radius:50%;background:var(--okbg);color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:38px;margin:30px auto 12px}
+.prog{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:14px 0 6px}
+.prog i{display:block;height:100%;width:0;background:var(--ok);transition:width .2s}
+.imv{display:flex;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 16px;font-size:14px}
+.imv b{display:block;font-size:15px}
+footer{color:var(--muted);font-size:12px;text-align:center;margin-top:28px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo"><img alt="Avellar Imóveis" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACKAKADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD7KooooAKKKKACiiigAooooAKKKZNLHBC800iRxopZ3ZsKoHUknoKAHVj+I/FXhvw4gbXNcsNPzyFmmCsfovU/lXgHxk+P1xNPNongSbyYFJSXVMfM/r5QPQf7R5PbHWvn28ubi8uXuru4luJ5Dl5ZXLMx9STya5KmKUXaOp+h5J4f4nGQVbGS9nF7K3vf8D8/I+4LP4vfDa7uPIi8XWAfOAZN0an/AIEwA/Wu1tbiC6t0uLWeOeGQZSSNwysPUEcGvzlrvPhL8Tdc8A6ohglkutIkcfabF2+Ujuyf3X9+/eohi9feR6WaeHChRc8FUcpLpK2vo1bX+rn3HRWf4d1jT9f0S01jS5xPZ3cYkiceh7EdiDwR6itCu7c/LJwlCTjJWaCiiigkKKKKACiiigAooooAKKKKACiiqGvavp+h6ZLqWp3KW9tEOWPUnsAO5PpSlJRV29CoxlOSjFXbJdUv7LS9Pn1DULmK1tIELyyyNtVFHcmvkr45fF3UvGksmi6Ctxa+HlbDHaQ93ju3onov4n0G78S/Hl/4wvDCA1tpUTZhts/eI6O/qfboP1rja+XxmfxcnClG679z9S4Y4ep4BrFYuPNU6LpH/N/keakEHBBB9xSV6NcW1vcIVnhSQH+8tc3q/hyVA0umxyTKAWeIKWZQOSRjqBWeHzKnWlytWZ+kUcxpzdpaHO0UUV6R6J9Gfsc+KZfP1Twfcykx7PttoCfunIWRR9cqfzr6Tr4Z+AusnQ/izoN2zbYprj7LIT/dlGz+ZB/CvuavSwsrwt2Pwjj7BRw2bOcFpNJ/PZ/lf5hRRRXSfEhRRRQAUUUUAFFFFABRRXK/EfxvpPgjR0u78ma6uG8uztEPzzv6D0UdS3YfgKmUlFOUnoaUaM601Tpq7eyNHxb4k0vwxpL6jqk2xekca8vK391R3/pXzP488Yap4v1P7Tet5VtGT9ntVPyRD+repqn4r8Rap4n1Z9R1Wbe54jjXhIl/uqPT9TWRXxGZ5rPFPkhpD8/U/VMh4dp5fFVautR/cvT/ADCiivXvhX8KmvVi1rxRCyWxw8Fk3DSDsz+g/wBnqe9cGFwlXFT5Ka/4B6+Y5lQy+l7Ws/RdX6HK/D34eax4tkW4wbLTAfmunX7/ALIP4j79K+gfCfhHQvDFl9m0yzQMy4lmkG6SX/ePp7DityGKOGJIoY0jjQBVRRgKB0AHan19tgMro4RXWsu/+XY/K82z7E5lK0nyw6RX69z4w/aO8Bx+DPGn2nT4vL0jVA01uoHyxOD88Y9gSCPY+1eX19pftMeHk134U6hMsYa50wi9hOOQF4cf98lvyFfF3AGT+VTiKfJPTqfsPB2dPHZWpVn71P3W+/Z/d+I+3uXs7q3uoiRJBKsqn3Ugj+Vfolpl3Hf6ba30RzHcQpKpHoygj+dfnKx3Ek96+5f2e9X/ALZ+EHh+dn3SQW5tZPrExT+QFbYR2bR8Vx5fEcmI82vv2/I76iiiu4/OAooooAKKKKACiiigCjr2qWeiaNeavqEoitLOFppnPZVGfz9K+MNS8U6h498b3/ibUiQqDyrSDOVt4yThR746nuSa9x/bD1iaw+HNppcLFf7TvlSXB6xoC5H/AH0Fr5g8L6pFp08iXGfJlxlgM7SP6V4+buc6MoQ3P0Pg7AQjTeKktW7LyS/zZ29LVJdV01l3C/t8e7gV1nw68WfDvQbs614jvpr25hb/AEWztrZpAGH8bE4XPoM+9fJYfA1a1RQtbzZ9ji8V9XpOcYuT6Jbt/wBdT1H4O/DMWwh8QeI7fNwcPa2jjiP0dx/e9B2+vT2KvnXXf2n7JAyaF4VuJj/DJeXAjH/fKg/zrz/xB+0F8RdT3JaXdlpMTdrS3BYf8CfcfyxX2uGhQwlPkp/8OfnWJyfN81rOtXSj2u9EuySufZMsiRRmSR1RFGSzHAH41xniT4q/D/QNy3/iexaVesNs/nv9MJnH418Ta74l8Q665fWtc1HUCe09wzL+AzgflWSAB0GKuWK7I7cPwZHevU+5fq/8j6I+Jn7RcOp6ZeaN4W0RvJuonhkur/HKMCDtjB9D1J/Cvngknqc0lFc85ym7s+rwGX0MBTdOgrJ7+YV9UfsX6t5/hLWtFdstZ3qzoP8AZkXH80P518r17V+x7q32L4l3WmM2E1GwcAZ6vGQw/TfV0HaaODiOh7bLqnlZ/d/wD66opKWvSPycKKKKACiiigAooooA8W/a+0ObUvhtb6pAhc6VeLLKAOkbgoT+BK18iV+jmpWVrqOn3FhewJPbXEbRTRuMh1YYIP4V8YfGP4Q654H1Ca7srefUPD7sWhuo1LNCP7soHQj+90P14rjxNN35kfecKZpSjTeEqOzvded+nqeZUUAg9DmgkDqRXGfchRW5oHhDxTr7AaN4e1O9B/jjt22f99EY/WvRPD37O3xA1Ha+oDTtIjPJ8+fzHH/AUz/MVcacpbI4cRmWEw/8Wol89fu3PH6K+pfD37MegwbX17xDf3zd47aNYE/M7j/KvRdA+EXw50VV+y+FrGeQf8tLsGdj/wB9kj8q1jhpvc8TEcXYKnpTTl8rL8f8j4VX5jhfmPtzSsrIMupX6jFfotaaTpVmoW00yyt1HQRQKoH5CpZ7KynQpPZ28qnqHiUj9RWn1TzPPfGiv/B/8m/4B+cYIPQ5rrvg1qp0b4qeG78ttQXyROf9mT5D+jV9feKfhN8P/EUTi88N2lvMw4ns18iQH1yuAfxBr5z+LnwW1nwD/wAVDok8mqaPbuJWfbia2wcguBwV/wBofiBWcqEqb5j0cPxDg8yhLDy92Uk1rs7+f/DH2JRVbS7pb7TLW9T7txCko+jKD/WrNegfmbVnZhRRRQIKKKxfHHiOy8J+FNQ8QahloLOLfsU8yMeFQe5JA/GhuxUISnJRirtmw7qilnYKo6knAFNhnhmBaGWOQDujAj9K+ePCngfxR8ZIB4t8ea9e2Oj3LFrDS7Ntq+XnAbnIA9CQWPXjitXWPgRN4fgbV/hr4m1fTdXtxvSGacNHOR/CSAMZ9wR61lzyeqWh6ssvw1OXsqle0/RuKfZv/JHuU08MABmljjBOAXYDP508gMpBAII5B714HJqMnxs+CWr6feWqweKdFfdJCo2/v0BwQO28B1x2Ofau6/Z88XHxf8NbG4uJN2oWP+h3gP3t6AYY/wC8u0/XNONRN2McRl06FKU5PWMrNdr6p37M2NW+HXgPVJzPf+EtHllJyz/ZVUn6kYzTtA8GeA7B/N0bw7oSOh/1kVvG7KfryRWT8ffF3/CHfDTUL2GXZfXS/ZLPB5EjggsP91dzfgK868O3Z+C/wEs71bQS+JNelDwwuMkyyD5Aw6kImOO5OO9JyjGWxvQw+Jr4dSVR+9LlirvXu99Ej6Ad44UG90jQcDJAFPVgyhlIIPQg8GvCtC+CF74mgXWfif4m1e/1S4G9rWCcJHb5/hzgjI9FAA96peKvBPiP4PWjeLvAevahe6TaMG1DSL596tFnBYYwOPXAI65PIo55JXa0JWX4ac/ZQrpz9Hyt9lL9bWPoCSSOIbpHRB6s2BTsjGc8V8//ALTWu2niX4FaFr+ns32e+voZUBPK5jkyp9wcg/Svb/8AmWf+3L/2SqU7to5q2CdKjCpJ6yclbta3+ZfjljlGY5FcdMqc0+vD/wBjQk/DfU8kn/ibP/6Kjqz8Z/G3iS78Y2Xwx8BSCDWLxQ95e55toyM4B/h+X5ieoGAOTSVRcqkbTyyf1yeGi/hvdvRJLds9ikuLeOQRyTxI56KzgE/hSzRRzwvDNGskcilXRhkMCMEEdxXiln+zh4altjLrviDXdR1JxmS5E4UbvUAhj+ZNZH2rxR8C/E2nWuqaxca94H1GXyVluMmSzb+mBzgcEA8AilztfEtDSOX0K144arzTXRq1/R3evrY97so7LTra202Bo4o4o1jhiL8hFGABnk4AqxHJHIMxurjplTmvnD9pLSJPEnxq8F6LbXjW39oWoi89DyitK2WHr8ua9t+HXgvSPAugHRtGe6eBpjM7XEm9i5ABOcDA+UcU4ybbVtjLE4OnRw9Oq53lNXtbza3udLRRRWh5oV5B+10lw/wdnMIYql9A0uP7uSP/AEIrXr9ZninRLHxH4evtD1OMvaXsJikA6jPQj3BwR7ipmuaLR1YHELD4mnVa0i0yp8PJbWbwFoEliVNs2m2/l7emPLXit6vnjw9c/E/4NiTQpvDlx4u8Mo7NaT2eTJEpOcYAJX1KkYznBrVvviH8S/GkDaP4M8BahoTTjZLqepkoIFPUrlQM+/J9BUKokrNanfWyqpKo505RcG783MrW8+t/K1yp8Cp4Zf2gfiP9hdTaO7NhehYTYz+Zb86PDn/Fs/2jb3Q2/daF4tXzrUdFSfJIA/4FvX6OtVv2bPC9/wCFPit4u0u6W4mjt7VIhdvCyJO28ElSevJPeux/aY8K3Ou+B49Z0qOQ6xoUwvLYxAmQqCN4XHJPAb6rWcU+S/VHpYirS+vuhzXhOMY3/wC3Vyv5O34nHeP8/E79obS/B8eZNF8OgzX+Pus4wzg/jsT/AL6p37XFxfadrfgbUrSGKUWt3I8Uco/dmYNEVDcjjj24zXRfsueFbzS/C994o1qOUaxr1w00hmUiQRhjjIPILMWb8RXa/FbwRYePvCE+h3knkShhLa3AGTDKM4OO4OSCPQ0+Ryg31Zi8bRwuPp096dNcvrdNSf3v7keXm1/aU13/AFl5o+gRP2UxAj8g5/WmS/BL4ga6jJ4r+KV3NE4w8MPmSIR6YLKP0qXRPGfxV+Htomh+LPBF54ktrYCO31HT2Ls6DgbiAc8eoU+uatSePvit40nhsfB/gefw5CZFM2o6sDhVByQAygc9OAx9MdaXuve9zdyxlN3oqnGP8y5bfjd/qYHx/wDCcHgn4AaR4dtr6e9ittXDLLMoDHcJWIwOMZJr37/mWf8Aty/9krif2gvB2p+NPhpJp2nBJdTtpUuoowdolZQQyjPTIY4z3xTPg54y1vxNZyaB4k8J6no17YWipPPPGVinP3DtyBz3xzVpcs2jz605YnAxqXu4yk5bX962tv8AI5r9jT/km+p/9hZ//RUdU/h+Uh/a08ZR3/FzLaE2u7qVxCeP+A/yNZ/wyuPFvwi8QX3hDUfCOparpF/qIe0v7NCyLuITeSARjbtJBwRg12Hxq+HWt6nrth488DXCW3ibTgAY2IUXKDOBk8bsEjB4IOO1Sr8qtujurygsbW5pJRrJ8sr6dGr9tVZnrleP/tdSWq/CCaOcr5sl9ALcHrvBJOP+A7qz7X40eMLOEWeufCfXjqaDafsqP5Tt6jKnA+hNcL8Y9I+JXjXwxceL/E2mPpNnZFE03RIUMkxLsAzuByDjuRn2A6upUTi0jDLMtqUMZTqV5KMU11Tv2tZ/8A1tZkeX4ufBqWRizvo9szE9yVNfSlfO2q6XqLfFT4QzR6ddmC20i2WeQQNtiIU5DHGFPsa+iaql1ObN5RcaNv5X/wClSCiiitTxQooooAKKKKACkpaKAMKbX4bXU9bjvGEdrpdnFdSPs5CsJCec88R9MD8apSeLri3W2N94Z1a3a+YJZIDHI0zkZCNtbEbbQT8xAAB5yMUuu+GrrUG8TmO4hT+2NOitIdwP7tlEoJb2/eDp6GtnULGS5l0x1dQLS5Ez5/iHlumB+LCp1Oj90kuv/DL9TPtPE8KnUI9Xs59Jm0+3F1MszK6mE7vnVkJBGVYEdQR05FUo/E+px3dvc6lodzYaVdMkVvJIULiRzhPNAYmMMSAODgkZIq5rfhxdX1DUHuZgtre6V9gYJ99SWY7h2/iH4iqs+keJtUitdP1q60wWMM0cs8tsH8268tg6jaRiMFlBOC3cDGc0alRVLf7/AC9C4PE9o3haLXFt5iZWWFbXgS+eX8vyfTcHyp+hPSqk/i8rBcahDo13caRbO6y3qSJyEJDukZO5kUg89Tg4B7rD4XmTxi2pG6jOlCQ3sdntOVvGXy2kz027cnH95mNZEPgRrIy2dtpHhi8tHmd47m9ti08auxYqygYkxkgHcvGM+694qMaHV/129UbN/wCLLexuNUMiGeCzjtGiEQAMjXDMqDcWxgkLycAA5ya1tHvdQuvMF/pEmnsuChM6SrID6FTnjvkDrxmsq50C8S+1i5sl0ySO+t7WCO2uoi0W2LeGVgOxD4HXGOh6U3wf4fu9J1G8u5I7Gxt540RLCxkdoVZSxMnzAAMcgYVRwOc9nrciSpcjtvp+n/BOopKWiqOYSloooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//Z"></div>
+    <div class="brand">Avellar Imóveis<small>Cadastro para locação</small></div>
+  </header>
+  <div id="app"></div>
+  <footer>Avellar Imóveis Ltda · CRECI 6332J · Recife-PE<br>Seus dados vão só para a Avellar e servem apenas para a análise da locação.</footer>
+</div>
+<div class="nav" id="nav"><div class="in">
+  <button class="btn back" id="bBack" type="button">Voltar</button>
+  <button class="btn pri" id="bNext" type="button">Continuar</button>
+</div></div>
+
+<script>
+window.AVELLAR_API="https://script.google.com/macros/s/AKfycbxbg2upVxbUi2EPLEbBGMieh01iVKfxQJCxFbCV3tsRMahkZ8mbmOfqmoDnSS7k146d/exec";
+(function(){
+"use strict";
+var NEG = (window.NEG && window.NEG.id) ? window.NEG : null;
+var GAS = !!(window.google && google.script && google.script.run);
+var API = window.AVELLAR_API || "";
+var LIVE = GAS || !!API;
+var KEY = "avellar_cadastro_rascunho_v1" + (NEG ? "_" + NEG.id : "");
+
+/* ---------- Parâmetros do link ---------- */
+function qp(){
+  var o={};
+  try{ (location.search||"").replace(/^\?/,"").split("&").forEach(function(p){ if(!p) return; var a=p.split("="); o[decodeURIComponent(a[0])]=decodeURIComponent((a[1]||"").replace(/\+/g," ")); }); }catch(e){}
+  return o;
+}
+var URLP = qp();
+function boot(params){
+  /* No Apps Script os parâmetros chegam por google.script.url */
+  if(GAS && google.script.url){ google.script.url.getLocation(function(loc){ var p=loc.parameter||{}; Object.keys(p).forEach(function(k){URLP[k]=p[k];}); start(); }); }
+  else if(API && URLP.n && !NEG){
+    /* Página fora do Google: busca a negociação pelo código do link */
+    app.innerHTML='<p class="lead">Carregando…</p>';
+    post_({acao:"negociacao", n:URLP.n}).then(function(d){ if(d && d.id){ NEG=d; KEY=KEY+"_"+d.id; } start(); })
+    .catch(function(){ app.innerHTML='<div class="banner">Não consegui abrir este link. Tente de novo em instantes ou fale com o corretor.</div>'; });
+  }
+  else start();
+}
+
+/* ---------- Estado ---------- */
+var S = { step:0, meta:{tipo:"",papel:"",imovel:"",corretor:""}, v:{}, files:{} , attempted:{} };
+function save(){ try{ var c=JSON.parse(JSON.stringify(S)); c.files={}; localStorage.setItem(KEY, JSON.stringify(c)); }catch(e){} }
+function load(){ try{ var t=localStorage.getItem(KEY); if(t){ var o=JSON.parse(t); if(o&&o.v){ S.step=o.step||0; S.meta=o.meta||S.meta; S.v=o.v||{}; } } }catch(e){} }
+function clearDraft(){ try{ localStorage.removeItem(KEY); }catch(e){} }
+
+function get(path){ var p=path.split("."), o=S.v; for(var i=0;i<p.length;i++){ if(o==null) return ""; o=o[p[i]]; } return o==null?"":o; }
+function set(path,val){ var p=path.split("."), o=S.v; for(var i=0;i<p.length-1;i++){ if(o[p[i]]==null) o[p[i]] = /^\d+$/.test(p[i+1])?[]:{}; o=o[p[i]]; } o[p[p.length-1]]=val; }
+
+/* ---------- Máscaras e validação ---------- */
+function dig(s){ return String(s||"").replace(/\D/g,""); }
+var MASK = {
+  cpf:function(v){ v=dig(v).slice(0,11); return v.replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2"); },
+  cnpj:function(v){ v=dig(v).slice(0,14); return v.replace(/^(\d{2})(\d)/,"$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3").replace(/\.(\d{3})(\d)/,".$1/$2").replace(/(\d{4})(\d)/,"$1-$2"); },
+  cep:function(v){ v=dig(v).slice(0,8); return v.replace(/(\d{5})(\d)/,"$1-$2"); },
+  tel:function(v){ v=dig(v).slice(0,11); if(v.length<=10) return v.replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{4})(\d)/,"$1-$2"); return v.replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{5})(\d)/,"$1-$2"); },
+  money:function(v){ v=dig(v).slice(0,12); if(!v) return ""; var n=(parseInt(v,10)/100).toFixed(2).split("."); return "R$ "+n[0].replace(/\B(?=(\d{3})+(?!\d))/g,".")+","+n[1]; },
+  pct:function(v){ v=String(v||"").replace(/[^\d,]/g,"").slice(0,6); return v; }
+};
+function money2n(s){ var d=dig(s); return d?parseInt(d,10)/100:0; }
+function fmtMoney(n){ return MASK.money(String(Math.round(n*100))); }
+function cpfOk(c){ c=dig(c); if(c.length!==11||/^(\d)\1+$/.test(c)) return false; var s=0,i,r; for(i=0;i<9;i++) s+=+c[i]*(10-i); r=(s*10)%11; if(r===10) r=0; if(r!==+c[9]) return false; s=0; for(i=0;i<10;i++) s+=+c[i]*(11-i); r=(s*10)%11; if(r===10) r=0; return r===+c[10]; }
+function cnpjOk(c){ c=dig(c); if(c.length!==14||/^(\d)\1+$/.test(c)) return false; var calc=function(n){ var w=n===12?[5,4,3,2,9,8,7,6,5,4,3,2]:[6,5,4,3,2,9,8,7,6,5,4,3,2], s=0; for(var i=0;i<n;i++) s+=+c[i]*w[i]; var r=s%11; return r<2?0:11-r; }; return calc(12)===+c[12] && calc(13)===+c[13]; }
+function emailOk(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e||"").trim()); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+
+/* ---------- Definição dos campos ---------- */
+function F(k,label,type,o){ o=o||{}; o.k=k; o.label=label; o.type=type||"text"; return o; }
+var UF=["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
+var ECIVIL=["Solteiro(a)","Casado(a)","Divorciado(a)","Viúvo(a)","Separado(a) judicialmente"];
+function addr(p,req,extra){
+  var r=!!req;
+  var a=[ F(p+"cep","CEP","cep",{req:r,half:1,hint:"Preenche a rua sozinho",addr:p}),
+          F(p+"uf","Estado","select",{half:1,options:UF,def:"PE"}),
+          F(p+"rua","Rua, avenida, praça","text",{req:r}),
+          F(p+"numero","Número","text",{req:r,half:1,im:"numeric"}),
+          F(p+"complemento","Complemento","text",{half:1}),
+          F(p+"bairro","Bairro","text",{req:r,half:1}),
+          F(p+"cidade","Cidade","text",{req:r,half:1,def:"Recife"}) ];
+  return a.concat(extra||[]);
+}
+function isPF(){ return S.meta.tipo==="pf"; }
+function isFiador(){ return S.meta.papel==="fiador"; }
+function casado(){ return /^Casado/.test(get("pf.estado_civil")); }
+
+var IMOVEL_FIELDS = [
+  F("im.tipo","Tipo de imóvel","radio",{req:function(){return !S.meta.imovel;},options:["Apartamento","Casa","Sala","Loja","Galpão","Prédio"]}),
+  F("im.finalidade","Finalidade","radio",{req:function(){return !S.meta.imovel;},options:["Residencial","Comercial"]}),
+  F("im.nome","Nome do imóvel (prédio ou galeria)","text",{hint:"Ex.: Edf Rio Blanco, aptº 1901"}),
+].concat(addr("im.",false)).concat([
+  F("im.aluguel","Valor do aluguel","money",{half:1,hint:"Se souber"}),
+  F("im.condominio","Condomínio","money",{half:1}),
+  F("im.iptu","IPTU","money",{half:1}),
+  F("im.tpei","TPEI","money",{half:1}),
+  F("im.dspu","DSPU","money",{half:1})
+]);
+
+var PATR = { rep:"patrimonio", label:"Imóvel", max:4, fields:[
+  F("endereco","Endereço completo do imóvel","textarea",{req:1}),
+  F("onus","Situação","radio",{req:1,options:["Livre","Onerado (financiado ou hipotecado)"]}),
+  F("registro","Nº do registro (matrícula)","text",{half:1}),
+  F("data","Data do registro","date",{half:1}),
+  F("cartorio","Cartório","text",{half:1}),
+  F("valor","Valor aproximado","money",{half:1})
+]};
+var REFB = { rep:"ref_banco", label:"Referência bancária", max:3, fields:[
+  F("banco","Banco","text",{req:1,half:1}), F("agencia","Agência","text",{half:1,im:"numeric"}),
+  F("operacao","Tipo de operação","text",{half:1,hint:"Ex.: conta corrente, cartão"}), F("limite","Limite","money",{half:1})
+]};
+var REFC = { rep:"ref_comercial", label:"Referência comercial", max:3, fields:[
+  F("nome","Nome","text",{req:1}), F("endereco","Endereço","text"), F("telefone","Telefone","tel")
+]};
+
+var STEPS_PF = [
+ { id:"voce", title:"Sobre você", lead:"Dados de quem vai assinar.", items:[
+   F("pf.nome","Nome completo","text",{req:1,ac:"name"}),
+   F("pf.nascimento","Data de nascimento","date",{req:1,half:1}),
+   F("pf.cpf","CPF","cpf",{req:1,half:1}),
+   F("pf.rg","RG","text",{req:1,half:1,im:"numeric"}),
+   F("pf.rg_orgao","Órgão expedidor","text",{half:1,hint:"Ex.: SDS"}),
+   F("pf.rg_uf","Estado do RG","select",{half:1,options:UF,def:"PE"}),
+   F("pf.celular","Celular (WhatsApp)","tel",{req:1,half:1}),
+   F("pf.email","E-mail","email",{req:1}),
+   F("pf.nacionalidade","Nacionalidade","text",{half:1,def:"Brasileira"}),
+   F("pf.naturalidade","Naturalidade (cidade onde nasceu)","text",{half:1}),
+   F("pf.profissao","Profissão","text",{req:1}),
+   F("pf.estado_civil","Estado civil","radio",{req:1,options:ECIVIL}),
+   F("pf.mae","Nome da mãe","text",{req:1}),
+   F("pf.pai","Nome do pai","text")
+ ]},
+ { id:"mora", title:"Onde você mora", lead:"Endereço de hoje.", items:
+   addr("pf.res.",true,[ F("pf.res.telefone","Telefone fixo","tel",{half:1}),
+     F("pf.res.situacao","Esse imóvel é","radio",{req:1,options:["Próprio","Alugado","Outros"]}),
+     F("pf.tem_anterior","Quer informar a residência anterior?","radio",{options:["Sim","Não"],def:"Não"}),
+     {sub:"Residência anterior", when:function(){return get("pf.tem_anterior")==="Sim";}}
+   ]).concat(addr("pf.ant.",false).map(function(f){f.when=function(){return get("pf.tem_anterior")==="Sim";};return f;}))
+   .concat([F("pf.ant.situacao","Esse imóvel era","radio",{options:["Próprio","Alugado","Outros"],when:function(){return get("pf.tem_anterior")==="Sim";}})])
+ },
+ { id:"renda", title:"Trabalho e renda", lead:"Onde você trabalha e quanto ganha.", items:[
+   F("pf.trab.empresa","Empresa onde trabalha","text",{hint:"Se for autônomo, escreva Autônomo"}),
+   F("pf.trab.telefone","Telefone da empresa","tel",{half:1}),
+   F("pf.trab.cargo","Cargo","text",{half:1}),
+   F("pf.trab.admissao","Data de admissão","date",{half:1}),
+   F("pf.trab.mostrar_end","Informar endereço da empresa?","radio",{options:["Sim","Não"],def:"Não"})
+ ].concat(addr("pf.trab.",false).map(function(f){f.when=function(){return get("pf.trab.mostrar_end")==="Sim";};return f;})).concat([
+   {sub:"Renda"},
+   F("pf.salario","Salário","money",{req:1,half:1}),
+   F("pf.outras","Outras rendas","money",{half:1}),
+   {total:["pf.salario","pf.outras"],label:"Renda total"},
+   F("pf.socio","É sócio de alguma empresa?","radio",{req:1,options:["Sim","Não"]}),
+   F("pf.firma.nome","Empresa e endereço","textarea",{req:1,when:function(){return get("pf.socio")==="Sim";}}),
+   F("pf.firma.cargo","Cargo","text",{half:1,when:function(){return get("pf.socio")==="Sim";}}),
+   F("pf.firma.cota","Valor da cota","money",{half:1,when:function(){return get("pf.socio")==="Sim";}}),
+   F("pf.firma.capital","Capital registrado","money",{half:1,when:function(){return get("pf.socio")==="Sim";}}),
+   F("pf.firma.data","Data","date",{half:1,when:function(){return get("pf.socio")==="Sim";}})
+ ])},
+ { id:"conjuge", title:"Cônjuge", lead:"Dados do marido ou da esposa.", when:casado, items:[
+   F("pf.cj.nome","Nome completo","text",{req:1}),
+   F("pf.cj.cpf","CPF","cpf",{req:1,half:1}),
+   F("pf.cj.rg","RG","text",{half:1}),
+   F("pf.cj.orgao","Órgão expedidor","text",{half:1}),
+   F("pf.cj.telefone","Telefone","tel",{half:1}),
+   F("pf.cj.email","E-mail","email"),
+   F("pf.cj.profissao","Profissão","text",{half:1}),
+   F("pf.cj.renda","Renda","money",{half:1}),
+   F("pf.cj.empresa","Empresa ou órgão onde trabalha","text"),
+   F("pf.cj.cargo","Cargo","text",{half:1}),
+   F("pf.cj.tel_trab","Telefone do trabalho","tel",{half:1})
+ ].concat(addr("pf.cj.trab.",false))},
+ { id:"solidarios", title:"Mais alguém na renda?", lead:"Pessoas maiores de 18 anos que vão somar renda com você.", items:[
+   F("pf.tem_solid","Alguém vai compor renda com você?","radio",{req:1,options:["Sim","Não"]}),
+   { rep:"solid", label:"Pessoa", max:3, when:function(){return get("pf.tem_solid")==="Sim";}, fields:[
+     F("nome","Nome completo","text",{req:1}), F("cpf","CPF","cpf",{req:1,half:1}), F("rg","RG","text",{half:1}),
+     F("parentesco","Grau de parentesco","text",{req:1,half:1}), F("celular","Celular","tel",{req:1,half:1}),
+     F("email","E-mail","email"), F("nacionalidade","Nacionalidade","text",{half:1,def:"Brasileira"}), F("naturalidade","Naturalidade","text",{half:1}),
+     F("profissao","Profissão","text",{half:1}), F("estado_civil","Estado civil","select",{half:1,options:ECIVIL}),
+     F("salario","Salário","money",{req:1,half:1}), F("outras","Outras rendas","money",{half:1}),
+     F("admissao","Data de admissão","date",{half:1}), F("firma","Empresa da qual é sócio (se houver)","text")
+   ]}
+ ]},
+ { id:"patrimonio", title:"Patrimônio", lead:"Imóveis registrados no seu nome.", items:[
+   {note:function(){ return isFiador() ? "Como fiador, é preciso ter imóvel registrado no seu nome, na Região Metropolitana do Recife, livre de dívida." : "Se não tiver imóvel, marque Não e siga."; }},
+   F("pf.tem_patr","Tem imóvel registrado no seu nome?","radio",{req:1,options:["Sim","Não"]}),
+   Object.assign({when:function(){return get("pf.tem_patr")==="Sim";}},PATR)
+ ]},
+ { id:"refs", title:"Referências", lead:"Banco onde tem conta e lojas onde compra. Opcional.", items:[
+   {sub:"Bancárias"}, REFB, {sub:"Comerciais"}, REFC
+ ]},
+ { id:"imovel", title:"Imóvel que deseja alugar", lead:"", items:IMOVEL_FIELDS },
+ { id:"docs", title:"Documentos", lead:"Tire foto ou anexe o arquivo. Pode mandar depois, se faltar algum.", docs:true },
+ { id:"fim", title:"Revisar e enviar", lead:"", final:true }
+];
+
+var STEPS_PJ = [
+ { id:"empresa", title:"Sobre a empresa", lead:"Dados da empresa que vai alugar.", items:[
+   F("pj.razao","Razão social","text",{req:1}),
+   F("pj.fantasia","Nome fantasia","text"),
+   F("pj.cnpj","CNPJ","cnpj",{req:1}),
+   F("pj.ie","Inscrição estadual","text",{half:1}),
+   F("pj.im","Inscrição municipal","text",{half:1}),
+   F("pj.telefone","Telefone","tel",{req:1,half:1}),
+   F("pj.email","E-mail","email",{req:1,half:1}),
+   F("pj.ramo","Ramo de atividade","text",{req:1})
+ ]},
+ { id:"endereco", title:"Endereço da empresa", lead:"", items: addr("pj.end.",true,[
+   F("pj.end.referencia","Ponto de referência","text"),
+   F("pj.tem_unid","Tem filial, fábrica ou depósito?","radio",{options:["Sim","Não"],def:"Não"}),
+   F("pj.filial","Filial: endereço e telefone","text",{when:function(){return get("pj.tem_unid")==="Sim";}}),
+   F("pj.fabrica","Fábrica: endereço e telefone","text",{when:function(){return get("pj.tem_unid")==="Sim";}}),
+   F("pj.deposito","Depósito: endereço e telefone","text",{when:function(){return get("pj.tem_unid")==="Sim";}})
+ ])},
+ { id:"junta", title:"Junta Comercial", lead:"Registro e última alteração do contrato social.", items:[
+   F("pj.cap_ini","Capital inicial","money",{half:1}), F("pj.reg_num","Registro nº","text",{half:1}), F("pj.reg_data","Data do registro","date",{half:1}),
+   F("pj.cap_atual","Capital atual","money",{half:1}), F("pj.alt_num","Última alteração nº","text",{half:1}), F("pj.alt_data","Data da alteração","date",{half:1}),
+   F("pj.sucessora","A empresa é sucessora de outra?","radio",{options:["Sim","Não"],def:"Não"}),
+   F("pj.sucessora_info","Razão social anterior e praça","text",{req:1,when:function(){return get("pj.sucessora")==="Sim";}})
+ ]},
+ { id:"socios", title:"Sócios ou diretores", lead:"Coloque todos os sócios.", items:[
+   { rep:"socios", label:"Sócio", max:6, min:1, fields:[
+     F("nome","Nome completo","text",{req:1}), F("cpf","CPF","cpf",{req:1,half:1}), F("rg","RG","text",{half:1}),
+     F("cargo","Cargo ou função","text",{half:1}), F("participacao","Participação (%)","pct",{half:1,im:"decimal"}),
+     F("telefone","Telefone","tel",{req:1,half:1}), F("email","E-mail","email",{half:1})
+   ]}
+ ]},
+ { id:"patrimonio", title:"Patrimônio", lead:"Imóveis registrados no nome da empresa.", items:[
+   {note:function(){ return isFiador() ? "Como fiador, é preciso ter imóvel registrado, na Região Metropolitana do Recife, livre de dívida." : "Se não tiver imóvel, marque Não e siga."; }},
+   F("pj.tem_patr","Tem imóvel registrado?","radio",{req:1,options:["Sim","Não"]}),
+   Object.assign({when:function(){return get("pj.tem_patr")==="Sim";}},PATR)
+ ]},
+ { id:"refs", title:"Referências", lead:"Bancos e fornecedores. Opcional.", items:[ {sub:"Bancárias"}, REFB, {sub:"Comerciais"}, REFC ]},
+ { id:"imovel", title:"Imóvel que deseja alugar", lead:"", items:IMOVEL_FIELDS },
+ { id:"docs", title:"Documentos", lead:"Tire foto ou anexe o arquivo. Pode mandar depois, se faltar algum.", docs:true },
+ { id:"fim", title:"Revisar e enviar", lead:"", final:true }
+];
+
+function DOCS(){
+  var d=[];
+  if(isPF()){
+    d.push({id:"identidade",t:"Identidade e CPF",req:1});
+    d.push({id:"renda",t:"Comprovante de renda dos últimos 3 meses",h:"Contracheque, holerite ou declaração do Imposto de Renda",req:1});
+    d.push({id:"residencia",t:"Comprovante de residência",req:1});
+    d.push({id:"cartao",t:"Extrato do cartão de crédito"});
+    if(casado()) d.push({id:"conjuge",t:"Identidade e CPF do cônjuge",req:1});
+    if(get("pf.tem_solid")==="Sim") d.push({id:"solidarios",t:"Documentos de quem compõe a renda",h:"Identidade, CPF e comprovante de renda"});
+  } else {
+    d.push({id:"cnpj",t:"Cartão CNPJ",req:1});
+    d.push({id:"inscricao",t:"Inscrição estadual ou municipal"});
+    d.push({id:"contrato",t:"Contrato social e última alteração",req:1});
+    d.push({id:"ir_empresa",t:"Imposto de Renda da empresa",req:1});
+    d.push({id:"socios_id",t:"Identidade e CPF dos sócios",req:1});
+    d.push({id:"socios_res",t:"Comprovante de residência dos sócios",req:1});
+  }
+  if(isFiador()) d.push({id:"propriedade",t:"Prova de propriedade do imóvel",h:"Certidão do Registro de Imóveis ou escritura registrada",req:1});
+  d.push({id:"outros",t:"Outros documentos"});
+  return d;
+}
+
+var NEG_STEP={ id:"imovel", title:"Imóvel e valores", lead:"Valores combinados com o corretor. Eles não podem ser mudados aqui.", locked:true, items:[] };
+function steps(){ var all = isPF()?STEPS_PF:STEPS_PJ; return all.filter(function(s){ return !s.when || s.when(); }).map(function(s){ return (NEG && s.id==="imovel") ? NEG_STEP : s; }); }
+
+/* ---------- Render ---------- */
+var app=document.getElementById("app"), bBack=document.getElementById("bBack"), bNext=document.getElementById("bNext"), nav=document.getElementById("nav");
+
+function fieldHTML(f, path){
+  var v=get(path); if(v===""&&f.def!=null){ v=f.def; set(path,v); }
+  var id="f_"+path.replace(/\./g,"_");
+  var req=isReq(f)?' <span class="req">*</span>':"";
+  var cls="fld "+(f.half?"half":"full");
+  var h='<div class="'+cls+'" data-path="'+path+'">';
+  if(f.type==="radio"){
+    h+='<label class="l">'+esc(f.label)+req+'</label><div class="chips" role="radiogroup">';
+    f.options.forEach(function(o,i){ h+='<label class="chip"><input type="radio" name="'+id+'" data-k="'+path+'" value="'+esc(o)+'"'+(v===o?" checked":"")+'><span>'+esc(o)+'</span></label>'; });
+    h+='</div>';
+  } else {
+    h+='<label class="l" for="'+id+'">'+esc(f.label)+req+'</label>';
+    if(f.type==="select"){
+      h+='<select id="'+id+'" data-k="'+path+'"><option value="">Escolha</option>'+f.options.map(function(o){return '<option'+(v===o?" selected":"")+'>'+esc(o)+'</option>';}).join("")+'</select>';
+    } else if(f.type==="textarea"){
+      h+='<textarea id="'+id+'" data-k="'+path+'" rows="3">'+esc(v)+'</textarea>';
+    } else {
+      var t="text", im=f.im||"", ac=f.ac||"off";
+      if(f.type==="date") t="date";
+      if(f.type==="email"){ t="email"; ac="email"; }
+      if(f.type==="tel"){ t="tel"; im="tel"; ac="tel"; }
+      if(f.type==="cpf"||f.type==="cnpj"||f.type==="cep"||f.type==="money") im="numeric";
+      h+='<input id="'+id+'" type="'+t+'" data-k="'+path+'" data-m="'+f.type+'"'+(f.addr?' data-addr="'+path.replace(/cep$/,"")+'"':"")+(im?' inputmode="'+im+'"':"")+' autocomplete="'+ac+'" value="'+esc(v)+'">';
+    }
+  }
+  if(f.hint) h+='<div class="hint">'+esc(f.hint)+'</div>';
+  h+='<div class="err"></div></div>';
+  return h;
+}
+
+function itemsHTML(items, base){
+  var h='<div class="grid">';
+  items.forEach(function(it){
+    if(it.when && !it.when()) return;
+    if(it.sub){ h+='<div class="full"><h2>'+esc(it.sub)+'</h2></div>'; return; }
+    if(it.note){ h+='<div class="full note">'+esc(it.note())+'</div>'; return; }
+    if(it.total){ var n=it.total.reduce(function(a,k){return a+money2n(get(k));},0); h+='<div class="full total"><span>'+esc(it.label)+'</span><span data-total="'+it.total.join(",")+'">'+fmtMoney(n)+'</span></div>'; return; }
+    if(it.rep){
+      var arr=get(it.rep); if(!Array.isArray(arr)){ arr=[]; set(it.rep,arr); }
+      var min=it.min||(it.when?1:0);
+      while(arr.length<min) arr.push({});
+      h+='<div class="full">';
+      arr.forEach(function(o,i){
+        h+='<div class="rep"><div class="rep-h"><span>'+esc(it.label)+' '+(i+1)+'</span>'+(arr.length>min?'<button class="btn sm ghost" type="button" data-del="'+it.rep+'" data-i="'+i+'">Remover</button>':"")+'</div><div class="grid">';
+        it.fields.forEach(function(f){ h+=fieldHTML(f, it.rep+"."+i+"."+f.k); });
+        h+='</div></div>';
+      });
+      if(arr.length<it.max) h+='<button class="btn sm" type="button" data-add="'+it.rep+'">+ Adicionar '+esc(it.label.toLowerCase())+'</button>';
+      h+='</div>';
+      return;
+    }
+    h+=fieldHTML(it, it.k);
+  });
+  return h+'</div>';
+}
+
+function imovelBox(){
+  if(!S.meta.imovel) return "";
+  return '<div class="imv"><div><span class="muted">Imóvel</span><b>'+esc(S.meta.imovel)+'</b></div></div>';
+}
+function negBox(){
+  if(!NEG) return "";
+  var h='<div class="card"><div class="muted" style="font-size:13px">Imóvel</div><div style="font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:4px">'+esc(NEG.imovel_nome)+'</div>'+(NEG.endereco?'<div class="muted" style="font-size:14px;margin-bottom:8px">'+esc(NEG.endereco)+'</div>':"");
+  (NEG.valores||[]).forEach(function(l){ h+='<div class="sum-row"><span>'+esc(l[0])+'</span><b>'+esc(l[1])+'</b></div>'; });
+  if(NEG.observacoes) h+='<div class="note" style="margin:10px 0 0">'+esc(NEG.observacoes)+'</div>';
+  return h+'</div>';
+}
+
+function render(){
+  var st=steps();
+  if(S.step<0) S.step=0;
+  if(S.step>st.length) S.step=st.length;
+  window.scrollTo(0,0);
+  if(S.step===0){ renderStart(); return; }
+  var s=st[S.step-1];
+  var pct=Math.round((S.step/(st.length))*100);
+  var h=(LIVE?"":'<div class="prev">Prévia: nada é enviado daqui.</div>')+
+    '<div class="bar"><i style="width:'+pct+'%"></i></div><div class="stepinfo">Etapa '+S.step+' de '+st.length+' · '+(isPF()?"Pessoa física":"Pessoa jurídica")+' · '+(isFiador()?"Fiador":"Locatário")+'</div>'+
+    '<h1>'+esc(s.title)+'</h1>'+(s.lead?'<p class="lead">'+esc(s.lead)+'</p>':"");
+  if(s.locked) h+=negBox();
+  else if(s.id==="imovel" && S.meta.imovel) h+=imovelBox()+'<p class="lead">Já sabemos o imóvel. Os campos abaixo são opcionais.</p>';
+  if(s.locked){}
+  else if(s.docs) h+=docsHTML();
+  else if(s.final) h+=finalHTML();
+  else h+='<div class="card">'+itemsHTML(s.items)+'</div>';
+  app.innerHTML=h;
+  nav.style.display="";
+  bBack.style.visibility="visible";
+  bNext.textContent = s.final ? "Enviar cadastro" : "Continuar";
+  bNext.disabled=false;
+  if(S.attempted[s.id]) validate(s,true);
+  save();
+}
+
+function renderStart(){
+  var h=(LIVE?"":'<div class="prev">Prévia: nada é enviado daqui.</div>')+
+   '<h1>Cadastro para locação</h1><p class="lead">'+(NEG&&NEG.cliente?'Olá, '+esc(String(NEG.cliente).split(' ')[0])+'! ':'')+'Leva uns 10 minutos. Você pode parar e voltar depois: o que preencheu fica guardado neste celular.</p>'+(NEG?negBox():imovelBox())+
+   '<div class="card"><div class="fld"><label class="l">Quem vai preencher? <span class="req">*</span></label><div class="big">'+
+   chipBig("tipo","pf","Pessoa física","Para você, com seu CPF")+chipBig("tipo","pj","Pessoa jurídica","Para uma empresa, com CNPJ")+
+   '</div><div class="err">Escolha uma opção</div></div></div>'+
+   '<div class="card"><div class="fld"><label class="l">Você será <span class="req">*</span></label><div class="big">'+
+   chipBig("papel","locatario","Locatário","Quem vai alugar o imóvel")+chipBig("papel","fiador","Fiador","Quem garante o aluguel de outra pessoa")+
+   '</div><div class="err">Escolha uma opção</div></div></div>';
+  if(S.meta.papel==="fiador") h+='<div class="card"><div class="fld full" data-path="__afianca"><label class="l" for="f_af">Nome de quem você vai afiançar <span class="req">*</span></label><input id="f_af" data-meta="afiancado" value="'+esc(S.meta.afiancado||"")+'"><div class="err">Escreva o nome</div></div></div>';
+  if(!S.meta.imovel) h+='<div class="card"><div class="fld full"><label class="l" for="f_imv">Qual imóvel? </label><input id="f_imv" data-meta="imovel_cliente" placeholder="Ex.: Aptº 1901, Edf Rio Blanco" value="'+esc(S.meta.imovel_cliente||"")+'"><div class="hint">Se souber</div></div></div>';
+  app.innerHTML=h;
+  bBack.style.visibility="hidden";
+  bNext.textContent= S.started ? "Continuar" : "Começar";
+  save();
+}
+function chipBig(k,val,t,sub){ return '<label class="chip"><input type="radio" name="m_'+k+'" data-meta="'+k+'" value="'+val+'"'+(S.meta[k]===val?" checked":"")+'><span><b>'+t+'</b><em>'+sub+'</em></span></label>'; }
+
+/* ---------- Documentos ---------- */
+function docsHTML(){
+  var h='<div class="card">';
+  DOCS().forEach(function(d){
+    var fl=S.files[d.id]||[];
+    h+='<div class="doc"><div class="t">'+esc(d.t)+(d.req?' <span class="req">*</span>':"")+'</div>'+(d.h?'<div class="hint muted" style="font-size:13px">'+esc(d.h)+'</div>':"")+
+      '<div class="files">'+fl.map(function(x,i){ return '<div class="file"><span>'+esc(x.name)+' · '+Math.max(1,Math.round(x.size/1024))+' KB</span><button class="btn sm ghost" type="button" data-fdel="'+d.id+'" data-i="'+i+'">Tirar</button></div>'; }).join("")+'</div>'+
+      '<label class="btn sm add">'+(fl.length?"+ Mais um arquivo":"Anexar foto ou PDF")+'<input type="file" accept="image/*,application/pdf" multiple data-doc="'+d.id+'"></label></div>';
+  });
+  h+='</div><div class="note">Fotos são reduzidas antes de enviar, para ficar leve. PDF até 15 MB cada.</div>';
+  return h;
+}
+function readFile(file){
+  return new Promise(function(res,rej){
+    if(/^image\//.test(file.type)){
+      var url=URL.createObjectURL(file), img=new Image();
+      img.onload=function(){
+        var max=1800, w=img.naturalWidth, hh=img.naturalHeight, r=Math.min(1,max/Math.max(w,hh));
+        var c=document.createElement("canvas"); c.width=Math.round(w*r); c.height=Math.round(hh*r);
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        URL.revokeObjectURL(url);
+        var data=c.toDataURL("image/jpeg",0.82).split(",")[1];
+        res({name:file.name.replace(/\.[^.]+$/,"")+".jpg", mime:"image/jpeg", size:Math.round(data.length*0.75), data:data});
+      };
+      img.onerror=function(){ URL.revokeObjectURL(url); rej(new Error("Não consegui abrir esta foto. Tente tirar de novo ou mandar em PDF.")); };
+      img.src=url;
+    } else if(file.type==="application/pdf"){
+      if(file.size>15*1024*1024){ rej(new Error("Este PDF passa de 15 MB.")); return; }
+      var fr=new FileReader(); fr.onload=function(){ res({name:file.name, mime:file.type, size:file.size, data:String(fr.result).split(",")[1]}); }; fr.onerror=function(){rej(new Error("Não consegui ler o arquivo."));}; fr.readAsDataURL(file);
+    } else rej(new Error("Mande foto ou PDF."));
+  });
+}
+
+/* ---------- Validação ---------- */
+function visibleFields(s){
+  var out=[];
+  (s.items||[]).forEach(function(it){
+    if(it.when && !it.when()) return;
+    if(it.rep){ (get(it.rep)||[]).forEach(function(o,i){ it.fields.forEach(function(f){ out.push({f:f,path:it.rep+"."+i+"."+f.k}); }); }); return; }
+    if(it.k) out.push({f:it,path:it.k});
+  });
+  return out;
+}
+function isReq(f){ return typeof f.req==="function"?f.req():!!f.req; }
+function checkField(f,v){
+  v=String(v==null?"":v).trim();
+  if(isReq(f) && !v) return "Preencha este campo";
+  if(!v) return "";
+  if(f.type==="cpf" && !cpfOk(v)) return "CPF inválido, confira os números";
+  if(f.type==="cnpj" && !cnpjOk(v)) return "CNPJ inválido, confira os números";
+  if(f.type==="email" && !emailOk(v)) return "E-mail inválido";
+  if(f.type==="tel" && dig(v).length<10) return "Coloque o DDD e o número";
+  if(f.type==="cep" && dig(v).length!==8) return "CEP tem 8 números";
+  if(f.type==="date"){ var y=+v.slice(0,4); if(y<1900||y>2100) return "Data inválida"; }
+  return "";
+}
+function validate(s,show){
+  var bad=0, first=null;
+  visibleFields(s).forEach(function(x){
+    var msg=checkField(x.f,get(x.path));
+    var el=app.querySelector('[data-path="'+x.path+'"]');
+    if(el && show){ el.classList.toggle("bad",!!msg); el.querySelector(".err").textContent=msg; }
+    if(msg){ bad++; if(!first) first=el; }
+  });
+  if(show && first) first.scrollIntoView({behavior:"smooth",block:"center"});
+  return bad===0;
+}
+function stepMissing(s){ return visibleFields(s).filter(function(x){ return !!checkField(x.f,get(x.path)); }).length; }
+
+/* ---------- Final ---------- */
+var CONSENT="Autorizo a Avellar Imóveis Ltda ou a quem ela indicar a fazer pesquisas nos cadastros de proteção ao crédito (SERASA, SPC, SCI etc.) sobre mim ou a empresa proponente, cônjuge e locatários solidários, e a usar estes dados e os anexos, a qualquer tempo, na defesa de seus direitos relacionados a esta locação. Declaro que as informações desta ficha e os anexos são verdadeiros e completos, e que respondo civil e criminalmente por eventual falsidade.";
+var LGPD=[
+ "Usamos seus dados só para analisar este pedido de locação e, se aprovado, para fazer e administrar o contrato.",
+ "A consulta ao SERASA, SPC e similares serve para proteger o crédito da locação.",
+ "Compartilhamos os dados só com o proprietário do imóvel e, se você escolher seguro-fiança, com a seguradora. Não vendemos dados.",
+ "Se a locação não for fechada, apagamos seus dados e documentos em até 6 meses. Se for fechada, guardamos durante o contrato e pelo prazo que a lei exige.",
+ "Você pode pedir acesso, correção ou exclusão dos seus dados pelo e-mail avellarimoveis@avellarimoveis.com.br.",
+ "Declaro que as pessoas cujos dados informei (cônjuge, quem compõe renda, sócios) sabem disso e concordam."
+];
+function finalHTML(){
+  var st=steps(), h='<div class="card">';
+  st.forEach(function(s,i){
+    if(s.final) return;
+    var txt;
+    if(s.docs){ var miss=DOCS().filter(function(d){return d.req && !(S.files[d.id]||[]).length;}); txt= miss.length?'<span class="warn">Faltam '+miss.length+'</span>':'<span class="ok">Completo</span>'; }
+    else { var m=stepMissing(s); txt=m?'<span class="warn">Falta '+m+'</span>':'<span class="ok">Completo</span>'; }
+    h+='<div class="sum-row"><span>'+esc(s.title)+'</span><span>'+txt+' · <a href="#" data-go="'+(i+1)+'" style="color:var(--accent)">ver</a></span></div>';
+  });
+  h+='</div>';
+  var missDocs=DOCS().filter(function(d){return d.req && !(S.files[d.id]||[]).length;});
+  if(missDocs.length) h+='<div class="note">Você pode enviar agora e mandar depois para o corretor: '+missDocs.map(function(d){return esc(d.t);}).join("; ")+'.</div>';
+  h+='<h2>Condições gerais</h2><div class="card"><ul class="list">'+
+     '<li>Contrato residencial: 30 meses.</li><li>Contrato não residencial: mínimo de 12 meses.</li>'+
+     '<li>Renda mínima (locatário e fiador): 4 vezes o valor das despesas (aluguel e taxas).</li>'+
+     '<li>O locatário apresenta fiador com imóvel próprio, ou outra garantia aprovada pelo proprietário ou pela imobiliária.</li>'+
+     '<li>O imóvel do fiador deve ficar na Região Metropolitana do Recife, registrado em cartório e livre de dívida.</li></ul></div>'+
+     '<h2>Proteção de dados (LGPD)</h2><div class="card"><ol class="list">'+LGPD.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol></div>'+
+     '<h2>Autorização</h2><div class="card"><div class="fld full" data-path="__consent"><label class="consent"><input type="checkbox" id="consent"'+(S.meta.consent?" checked":"")+'><span>'+esc(CONSENT)+' Li e concordo com o texto de Proteção de dados (LGPD) acima.</span></label><div class="err">Marque para poder enviar</div></div>'+
+     '<div class="fld full" data-path="__assin" style="margin-top:14px"><label class="l" for="assin">Assinatura: escreva seu nome completo <span class="req">*</span></label><input id="assin" autocomplete="name" value="'+esc(S.meta.assinatura||"")+'"><div class="err">Escreva seu nome completo</div></div></div>';
+  return h;
+}
+
+/* ---------- Monta o resumo legível para a ficha em PDF ---------- */
+function shown(v,f){ if(v==null||v==="") return ""; if(f&&f.type==="date"){ var p=String(v).split("-"); if(p.length===3) return p[2]+"/"+p[1]+"/"+p[0]; } return String(v); }
+function buildSummary(){
+  var secs=[];
+  secs.push({titulo:"Cadastro", linhas:[
+    ["Tipo", isPF()?"Pessoa física":"Pessoa jurídica"],
+    ["Preenchido como", isFiador()?"Fiador":"Locatário"],
+    ["Fiador de", isFiador()?(S.meta.afiancado||""):""],
+    ["Imóvel (do link)", S.meta.imovel||""],
+    ["Imóvel (informado pelo cliente)", S.meta.imovel_cliente||""],
+    ["Corretor", S.meta.corretor||""]
+  ].filter(function(l){return l[1];})});
+  steps().forEach(function(s){
+    if(s.final || s.locked) return;
+    if(s.docs){
+      secs.push({titulo:"Documentos", linhas: DOCS().map(function(d){ var n=(S.files[d.id]||[]).length; return [d.t, n? n+" arquivo(s)" : (d.req?"FALTANDO":"não enviado")]; })});
+      return;
+    }
+    var linhas=[];
+    (s.items||[]).forEach(function(it){
+      if(it.when && !it.when()) return;
+      if(it.sub){ linhas.push(["§",it.sub]); return; }
+      if(it.total){ linhas.push([it.label, fmtMoney(it.total.reduce(function(a,k){return a+money2n(get(k));},0))]); return; }
+      if(it.rep){ (get(it.rep)||[]).forEach(function(o,i){ var any=it.fields.some(function(f){return get(it.rep+"."+i+"."+f.k);}); if(!any) return; linhas.push(["§",it.label+" "+(i+1)]); it.fields.forEach(function(f){ var v=shown(get(it.rep+"."+i+"."+f.k),f); if(v) linhas.push([f.label,v]); }); }); return; }
+      if(it.k){ var v=shown(get(it.k),it); if(v) linhas.push([it.label,v]); }
+    });
+    if(linhas.length) secs.push({titulo:s.title, linhas:linhas});
+  });
+  var nome = isPF()? get("pf.nome") : get("pj.razao");
+  return {
+    versao:1,
+    n:NEG?NEG.id:"", tipo:S.meta.tipo, papel:S.meta.papel, imovel:S.meta.imovel||S.meta.imovel_cliente||"", corretor:S.meta.corretor||"",
+    nome:nome, documento: isPF()?get("pf.cpf"):get("pj.cnpj"),
+    contato: isPF()? (get("pf.celular")+" · "+get("pf.email")) : (get("pj.telefone")+" · "+get("pj.email")),
+    secoes:secs, autorizacao:CONSENT, lgpd:LGPD, dispositivo:(navigator.userAgent||'').slice(0,200), assinatura:S.meta.assinatura||"",
+    respostas:S.v, meta:S.meta, preenchidoEm:new Date().toISOString()
+  };
+}
+
+/* ---------- Envio ---------- */
+function post_(p){
+  return fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(p)})
+    .then(function(r){ return r.json(); })
+    .then(function(o){ if(!o || !o.ok) throw new Error((o&&o.erro)||"Falha no envio."); return o.dados; });
+}
+function run(fn){ var args=[].slice.call(arguments,1); if(!GAS) return post_({acao:fn, args:args}); return new Promise(function(res,rej){ google.script.run.withSuccessHandler(res).withFailureHandler(function(e){rej(e&&e.message?e:new Error(String(e)));})[fn].apply(null,args); }); }
+function send(){
+  var payload=buildSummary();
+  var queue=[]; DOCS().forEach(function(d){ (S.files[d.id]||[]).forEach(function(f){ queue.push({doc:d.t,f:f}); }); });
+  var missing=DOCS().filter(function(d){return d.req && !(S.files[d.id]||[]).length;}).map(function(d){return d.t;});
+  nav.style.display="none";
+  app.innerHTML='<h1>Enviando…</h1><p class="lead">Não feche esta tela.</p><div class="prog"><i id="pg"></i></div><div class="muted" id="pgt">Preparando</div>';
+  var pg=document.getElementById("pg"), pgt=document.getElementById("pgt"), total=queue.length+2, done=0;
+  function tick(t){ done++; pg.style.width=Math.round(done/total*100)+"%"; pgt.textContent=t; }
+  if(!LIVE){
+    var k=0; var iv=setInterval(function(){ k++; tick(k<total?"Enviando arquivo "+k:"Pronto"); if(k>=total){ clearInterval(iv); finish("PREVIA-0000", missing); } },350);
+    return;
+  }
+  var token, prot;
+  run("iniciarCadastro", payload).then(function(r){ token=r.token; prot=r.protocolo; tick("Ficha salva");
+    return queue.reduce(function(p,q,i){ return p.then(function(){ return run("enviarArquivo", token, q.doc, q.f.name, q.f.mime, q.f.data).then(function(){ tick("Arquivo "+(i+1)+" de "+queue.length); }); }); }, Promise.resolve());
+  }).then(function(){ return run("concluirCadastro", token, missing); })
+  .then(function(){ tick("Pronto"); finish(prot, missing); })
+  .catch(function(e){
+    nav.style.display="";
+    app.innerHTML='<div class="banner">Não consegui enviar: '+esc(e.message||e)+'</div><p class="lead">O que você preencheu continua guardado. Tente de novo em instantes. Se repetir, fale com o corretor.</p>';
+    bNext.textContent="Tentar de novo"; bBack.style.visibility="visible";
+  });
+}
+function finish(prot, missing){
+  clearDraft();
+  nav.style.display="none";
+  app.innerHTML='<div class="done-ic">✓</div><h1 class="center">Cadastro recebido</h1><p class="lead center">Obrigado! A Avellar vai analisar e o corretor fala com você.</p>'+
+    '<div class="card"><div class="sum-row"><span>Protocolo</span><b>'+esc(prot)+'</b></div></div>'+
+    (missing.length?'<div class="note">Ainda falta mandar ao corretor: '+missing.map(esc).join("; ")+'.</div>':"");
+  S={step:0,meta:{},v:{},files:{},attempted:{},sent:true};
+}
+
+/* ---------- Eventos ---------- */
+app.addEventListener("input",function(e){
+  var t=e.target;
+  if(t.dataset.meta){ if(t.type!=="radio"){ S.meta[t.dataset.meta]=t.value; save(); } return; }
+  if(!t.dataset.k) return;
+  var m=t.dataset.m;
+  if(m && MASK[m]){ var pos=t.value.length; t.value=MASK[m](t.value); }
+  set(t.dataset.k,t.value);
+  var fl=t.closest(".fld"); if(fl && fl.classList.contains("bad")){ fl.classList.remove("bad"); }
+  app.querySelectorAll("[data-total]").forEach(function(el){ el.textContent=fmtMoney(el.dataset.total.split(",").reduce(function(a,k){return a+money2n(get(k));},0)); });
+  if(t.id==="assin") S.meta.assinatura=t.value;
+  if(t.dataset.addr!=null && dig(t.value).length===8) cep(t.dataset.addr, dig(t.value));
+  save();
+});
+app.addEventListener("change",function(e){
+  var t=e.target;
+  if(t.dataset.meta && t.type==="radio"){ S.meta[t.dataset.meta]=t.value; save(); if(S.step===0) renderStart(); return; }
+  if(t.id==="consent"){ S.meta.consent=t.checked; save(); return; }
+  if(t.type==="radio" && t.dataset.k){ set(t.dataset.k,t.value); save(); var y=window.scrollY; render(); window.scrollTo(0,y); return; }
+  if(t.tagName==="SELECT" && t.dataset.k){ set(t.dataset.k,t.value); save(); return; }
+  if(t.type==="file"){
+    var id=t.dataset.doc, list=[].slice.call(t.files||[]);
+    var y2=window.scrollY;
+    Promise.all(list.map(function(f){ return readFile(f).catch(function(err){ alertBox(err.message); return null; }); })).then(function(arr){
+      S.files[id]=(S.files[id]||[]).concat(arr.filter(Boolean)); render(); window.scrollTo(0,y2);
+    });
+  }
+});
+app.addEventListener("click",function(e){
+  var t=e.target.closest("[data-add],[data-del],[data-fdel],[data-go]"); if(!t) return;
+  e.preventDefault();
+  var y=window.scrollY;
+  if(t.dataset.add){ var a=get(t.dataset.add); if(!Array.isArray(a)){a=[];set(t.dataset.add,a);} a.push({}); }
+  if(t.dataset.del){ get(t.dataset.del).splice(+t.dataset.i,1); }
+  if(t.dataset.fdel){ S.files[t.dataset.fdel].splice(+t.dataset.i,1); }
+  if(t.dataset.go){ S.step=+t.dataset.go; render(); return; }
+  render(); window.scrollTo(0,y);
+});
+function alertBox(msg){ var d=document.createElement("div"); d.className="banner"; d.textContent=msg; app.prepend(d); window.scrollTo(0,0); setTimeout(function(){d.remove();},6000); }
+
+function cep(prefix, c){
+  try{
+    fetch("https://viacep.com.br/ws/"+c+"/json/").then(function(r){return r.json();}).then(function(j){
+      if(!j || j.erro) return;
+      var map={rua:j.logradouro,bairro:j.bairro,cidade:j.localidade,uf:j.uf};
+      Object.keys(map).forEach(function(k){ if(!map[k]) return; set(prefix+k,map[k]); var el=app.querySelector('[data-k="'+prefix+k+'"]'); if(el) el.value=map[k]; });
+      var n=app.querySelector('[data-k="'+prefix+'numero"]'); if(n && !n.value) n.focus();
+      save();
+    }).catch(function(){});
+  }catch(e){}
+}
+
+bBack.addEventListener("click",function(){ if(S.step>0){ S.step--; render(); } });
+bNext.addEventListener("click",function(){
+  if(S.step===0){
+    var ok=true;
+    app.querySelectorAll(".card .fld").forEach(function(fl,i){
+      var need = i===0 ? !S.meta.tipo : i===1 ? !S.meta.papel : (fl.dataset.path==="__afianca" && !String(S.meta.afiancado||"").trim());
+      fl.classList.toggle("bad",!!need); if(need) ok=false;
+    });
+    if(!ok) return;
+    S.started=true; S.step=1; render(); return;
+  }
+  var st=steps(), s=st[S.step-1];
+  if(!s){ S.step=0; render(); return; }
+  if(s.final){
+    var c=document.getElementById("consent"), a=document.getElementById("assin");
+    var fc=app.querySelector('[data-path="__consent"]'), fa=app.querySelector('[data-path="__assin"]');
+    var okc=c&&c.checked, oka=a && a.value.trim().split(/\s+/).length>=2;
+    if(fc) fc.classList.toggle("bad",!okc); if(fa) fa.classList.toggle("bad",!oka);
+    if(!okc||!oka) return;
+    var blocking=st.filter(function(x){return !x.final && !x.docs && stepMissing(x)>0;});
+    if(blocking.length){ var idx=st.indexOf(blocking[0]); S.attempted[blocking[0].id]=true; S.step=idx+1; render(); alertBox("Falta preencher alguns campos obrigatórios nesta etapa."); return; }
+    send(); return;
+  }
+  S.attempted[s.id]=true;
+  if(!s.docs && !validate(s,true)) return;
+  S.step++; render();
+});
+
+function start(){
+  load();
+  if(URLP.imovel) S.meta.imovel=URLP.imovel;
+  if(NEG){ S.meta.imovel=NEG.imovel_nome; S.meta.corretor=NEG.corretor; if(NEG.tipo) S.meta.tipo=S.meta.tipo||NEG.tipo; }
+  if(URLP.corretor) S.meta.corretor=URLP.corretor;
+  if(URLP.tipo==="pf"||URLP.tipo==="pj") S.meta.tipo = S.meta.tipo || URLP.tipo;
+  if(URLP.papel==="locatario"||URLP.papel==="fiador") S.meta.papel = S.meta.papel || URLP.papel;
+  if(S.step>0 && !S.meta.tipo) S.step=0;
+  render();
+}
+boot();
+})();
+</script>
+</body>
+</html>
