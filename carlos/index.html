@@ -170,7 +170,7 @@ var API='https://script.google.com/macros/s/AKfycbyPbE5XsBfWM4k9WuX5HRf2aYE2LFf-
 (function(){var k=new URLSearchParams(location.search).get('k');try{if(k)localStorage.setItem('painelCarlosK',k);else k=localStorage.getItem('painelCarlosK');}catch(e){}window.K=k||'';})();
 function chama(fn){var a=[].slice.call(arguments,1),p;
   if(fn==='carregar')p={acao:'carregar',k:a[0],forcar:!!a[1]};
-  else if(fn==='salvarRetorno')p={acao:'salvar',k:a[0],lead:a[1],texto:a[2],marca:a[3],etapa:a[4]};
+  else if(fn==='salvarRetorno')p={acao:'salvar',k:a[0],lead:a[1],texto:a[2],marca:a[3],etapa:a[4],r:a[5]||null};
   else p={acao:'cadastro',k:a[0],lead:a[1],link:a[2]};
   if(!p.k)return Promise.reject(new Error('Abra pelo link do Carlos.'));
   return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)})
@@ -324,14 +324,17 @@ var G={fila:[],i:0,op:null,iniciado:false};
 var SITUACAO={AG:'Ainda não foi contatado',PR:'Ainda não respondeu',EA:'Conversando',VA:'Visita marcada',VR:'Já visitou',NE:'Em negociação'};
 var OPCOES=[
   {id:'nr',t:'Não respondeu',c:'c1',marca:'Não responde às mensagens',etapa:''},
-  {id:'int',t:'Conversamos, segue interessado',c:'c2',marca:'Falei com o cliente',etapa:'EA',q:'O que o cliente disse?'},
-  {id:'vis',t:'Marcou visita',c:'c3',marca:'Marcou visita',etapa:'VA',q:'Que dia e que hora é a visita?',obrig:true},
-  {id:'vtu',t:'Visitou',c:'c4',marca:'Visitou',etapa:'VR',q:'O que o cliente achou do imóvel?'},
-  {id:'pro',t:'Fez proposta',c:'c5',marca:'Fez proposta',etapa:'NE',q:'Qual o valor e as condições?',obrig:true},
-  {id:'fec',t:'Fechou negócio',c:'c7',marca:'Fechou negócio',etapa:'FE',q:'Conte como ficou o negócio.',so:['NE']},
+  {id:'int',t:'Conversamos, segue interessado',c:'c2',marca:'Falei com o cliente',etapa:'EA',perg:['interesse','trava','passo']},
+  {id:'vis',t:'Marcou visita',c:'c3',marca:'Marcou visita',etapa:'VA',perg:['interesse','trava'],passo:'Fazer a visita',q:'Que dia e que hora é a visita?',obrig:true},
+  {id:'vtu',t:'Visitou',c:'c4',marca:'Visitou',etapa:'VR',perg:['interesse','trava','passo']},
+  {id:'pro',t:'Fez proposta',c:'c5',marca:'Fez proposta',etapa:'NE',perg:['interesse','trava','passo'],q:'Qual o valor e as condições da proposta?',obrig:true},
+  {id:'fec',t:'Fechou negócio',c:'c7',marca:'Fechou negócio',etapa:'FE',so:['NE']},
   {id:'des',t:'Desistiu',c:'c6',marca:'Desistiu',etapa:'IN',motivo:true}
 ];
 var MOTIVOS=[['Alugou ou comprou outro','Alugou ou comprou outro'],['Sem renda ou sem perfil','Sem perfil ou sem renda'],['Queria outro tipo de imóvel','Queria outra coisa'],['Outro motivo','Desistiu']];
+var PERG={interesse:['Qual o interesse do cliente?',[['Muito','c4'],['Médio','c5'],['Pouco','c1']]],
+  trava:['O que está travando?',[['Preço','c6'],['Localização','c2'],['Tamanho do imóvel','c3'],['Fiador ou documentos','c5'],['Ver com a família','c7'],['Nada, está tudo certo','c4']]],
+  passo:['Qual o próximo passo?',[['Ligar de novo','c2'],['Marcar visita','c3'],['Mandar outras opções','c5'],['Esperar o cliente','c1']]]};
 var ORDEM=['AG','PR','EA','VA','VR','NE'],PRIO={AG:0,NE:1,VR:2,VA:3,EA:4,PR:5};
 function gEl(){return document.getElementById('guia');}
 function gTopo(){return '<div class="topo"><div class="logo"><img alt="Avellar" src="'+document.querySelector('.logo img').src+'"></div><div class="brand">Avellar Imóveis<small>Painel do Carlos</small></div></div>';}
@@ -360,10 +363,17 @@ function gCliente(){
   window.scrollTo(0,0);
 }
 function gOpcao(id){
-  var o=OPCOES.filter(function(x){return x.id===id;})[0];G.op={o:o,marca:o.marca};
+  var o=OPCOES.filter(function(x){return x.id===id;})[0];G.op={o:o,marca:o.marca,r:{passo:o.passo||''},k:0};
   if(o.motivo){gEl().innerHTML=gTopo()+'<div class="g-q">Por que desistiu?</div>'+MOTIVOS.map(function(m,i){return '<button class="g-btn g-opc c6" data-g="mot" data-i="'+i+'">'+esc(m[0])+'</button>';}).join('')+'<button class="g-btn pq" data-g="voltar">Voltar</button>';return;}
-  if(!o.q){gSalvar('');return;}
-  gPergunta(o.q,o.obrig);
+  if(o.id==='nr'){gSalvar('');return;}
+  gProx();
+}
+function gProx(){
+  var o=G.op.o,p=(o.perg||[])[G.op.k];
+  if(p){var P=PERG[p];gEl().innerHTML=gTopo()+'<div class="g-pos">Pergunta '+(G.op.k+1)+' de '+o.perg.length+'</div><div class="g-q">'+esc(P[0])+'</div>'+
+    P[1].map(function(x,i){return '<button class="g-btn g-opc '+x[1]+'" data-g="resp" data-p="'+p+'" data-i="'+i+'">'+esc(x[0])+'</button>';}).join('')+
+    '<button class="g-btn pq" data-g="voltar">Voltar</button>';window.scrollTo(0,0);return;}
+  if(o.q)gPergunta(o.q,o.obrig);else gPergunta('Quer contar mais? Fale aqui.',false);
 }
 function gPergunta(q,obrig){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -371,7 +381,7 @@ function gPergunta(q,obrig){
     (SR?'<button class="g-mic" id="gMic" data-g="mic" aria-label="Falar">'+IC.mic+'</button><div class="g-micT" id="gMicT">Toque no microfone e fale</div>':'<div class="g-micT">Toque no microfone do teclado para falar</div>')+
     '<textarea id="g-txt" placeholder="Ou escreva aqui"></textarea>'+
     '<button class="g-btn ok" data-g="salvar">Salvar</button>'+
-    (obrig?'':'<button class="g-btn pq" data-g="semtexto">Salvar sem contar mais</button>')+
+    (obrig?'':'<button class="g-btn pq" data-g="semtexto">Salvar sem falar nada</button>')+
     '<button class="g-btn pq" data-g="voltar">Voltar</button>';
   G.obrig=!!obrig;
 }
@@ -391,7 +401,7 @@ function gSalvar(texto){
   var l=G.fila[G.i],o=G.op.o,c=cod(l);
   var et=o.etapa&&(o.etapa==='IN'||o.etapa==='FE'||ORDEM.indexOf(o.etapa)>ORDEM.indexOf(c))?o.etapa:'';
   var b=document.querySelector('[data-g="salvar"]');if(b){b.disabled=true;b.textContent='Salvando…';}
-  chama('salvarRetorno',window.K,l.id,texto,G.op.marca,et).then(function(r){
+  chama('salvarRetorno',window.K,l.id,texto,G.op.marca,et,G.op.r).then(function(r){
     l.ultimo={quando:r.quando,tipo:'RETORNO',marca:G.op.marca,texto:texto,lancado:'PENDENTE'};guarda(D);
     var s=document.getElementById('gSalvo');s.style.display='flex';
     setTimeout(function(){s.style.display='none';G.i++;gCliente();},1600);
@@ -402,7 +412,8 @@ document.addEventListener('click',function(e){
   var t=e.target.closest('[data-g]');if(!t)return;var a=t.dataset.g;
   if(a==='comecar'){G.iniciado=true;gMontaFila();gCliente();}
   else if(a==='op')gOpcao(t.dataset.o);
-  else if(a==='mot'){var m=MOTIVOS[+t.dataset.i];G.op.marca=m[1];gPergunta('Quer contar mais alguma coisa?',false);}
+  else if(a==='mot'){var m=MOTIVOS[+t.dataset.i];G.op.marca=m[1];gPergunta('Quer contar mais? Fale aqui.',false);}
+  else if(a==='resp'){G.op.r[t.dataset.p]=PERG[t.dataset.p][1][+t.dataset.i][0];G.op.k++;gProx();}
   else if(a==='mic')gFalar();
   else if(a==='salvar'){var v=(document.getElementById('g-txt').value||'').trim();if(G.obrig&&!v){toast('Fale ou escreva a resposta antes de salvar.',4000);return;}gSalvar(v);}
   else if(a==='semtexto')gSalvar('');
