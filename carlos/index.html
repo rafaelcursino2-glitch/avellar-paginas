@@ -77,35 +77,36 @@ textarea{width:100%;font:inherit;font-size:17px;color:var(--fg);background:var(-
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--fg);color:#fff;padding:12px 18px;border-radius:12px;font-size:15px;z-index:20;display:none;max-width:90vw;text-align:center}
 .pronto{font-size:13px;color:var(--muted);text-align:center;margin-top:18px}
 /* ===== Modo guiado (Carlos) ===== */
-#guia{max-width:620px;margin:0 auto;padding:12px 16px 40px;font-size:20px}
+#guia{max-width:620px;margin:0 auto;padding:8px 16px 24px;font-size:18px}
 body.lista #guia{display:none}
 body:not(.lista) .wrap{display:none}
-#guia .topo{display:flex;align-items:center;gap:12px;padding:6px 0 14px}
+#guia .topo{display:flex;align-items:center;gap:12px;padding:4px 0 8px}
 #guia .topo .brand{font-size:20px}
 #guia h1{font-family:var(--display);font-size:30px;line-height:1.2;margin:18px 0 10px}
 #guia p{font-size:20px;color:var(--fg);margin:0 0 18px}
 #guia .muted{color:var(--muted);font-size:17px}
-.g-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:68px;border-radius:18px;border:2px solid var(--line);background:var(--bg);color:var(--fg);font:inherit;font-size:21px;font-weight:600;margin:0 0 12px;padding:12px 16px;text-decoration:none;cursor:pointer;text-align:center}
-.g-btn svg{width:28px;height:28px;flex:none}
+.g-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;border-radius:14px;border:2px solid var(--line);background:var(--bg);color:var(--fg);font:inherit;font-size:17px;font-weight:600;line-height:1.2;margin:0 0 8px;padding:8px 10px;text-decoration:none;cursor:pointer;text-align:center}
+.g-btn svg{width:22px;height:22px;flex:none}
+.g-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 8px}.g-grid .g-btn{margin:0}
 .g-btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
 .g-btn.wa{background:#1f8f4e;border-color:#1f8f4e;color:#fff}
 .g-btn.ok{background:#1e7a3a;border-color:#1e7a3a;color:#fff}
-.g-btn.pq{min-height:52px;font-size:17px;font-weight:500;color:var(--muted);border-style:dashed}
-.g-opc{border-left-width:10px}
+.g-btn.pq{min-height:42px;font-size:15px;font-weight:500;color:var(--muted);border-style:dashed}
+.g-opc{border-left-width:8px}
 .g-opc.c1{border-left-color:#8a8a8a}.g-opc.c2{border-left-color:#2446a8}.g-opc.c3{border-left-color:#7a3db8}
 .g-opc.c4{border-left-color:#1e7a3a}.g-opc.c5{border-left-color:#f05a22}.g-opc.c6{border-left-color:#c4162a}.g-opc.c7{border-left-color:#b8860b}
-.g-cli{background:var(--panel2);border-radius:20px;padding:18px;margin:0 0 16px}
-.g-cli .n{font-family:var(--display);font-size:30px;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
-.g-cli .i{font-size:20px;margin-top:6px}
-.g-cli .s{display:inline-block;margin-top:10px;font-size:18px;font-weight:600;padding:6px 12px;border-radius:99px;background:#fff;color:var(--accent)}
-.g-cli .u{margin-top:10px;font-size:17px;color:var(--muted)}
-.g-pos{font-size:17px;color:var(--muted);margin:0 0 8px}
-.g-q{font-family:var(--display);font-size:26px;font-weight:700;margin:6px 0 14px}
-.g-mic{width:120px;height:120px;border-radius:50%;border:none;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;margin:8px auto 10px;cursor:pointer}
-.g-mic svg{width:54px;height:54px}
+.g-cli{background:var(--panel2);border-radius:16px;padding:12px 14px;margin:0 0 10px}
+.g-cli .n{font-family:var(--display);font-size:23px;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
+.g-cli .i{font-size:17px;margin-top:2px}
+.g-cli .s{display:inline-block;margin-top:6px;font-size:15px;font-weight:600;padding:6px 12px;border-radius:99px;background:#fff;color:var(--accent)}
+.g-cli .u{margin-top:6px;font-size:14px;color:var(--muted)}
+.g-pos{font-size:15px;color:var(--muted);margin:0 0 6px}
+.g-q{font-family:var(--display);font-size:20px;font-weight:700;margin:4px 0 8px}
+.g-mic{width:88px;height:88px;border-radius:50%;border:none;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;margin:8px auto 10px;cursor:pointer}
+.g-mic svg{width:40px;height:40px}
 .g-mic.ouvindo{background:#f05a22;animation:pulsa 1.2s infinite}
 .g-micT{text-align:center;font-size:18px;color:var(--muted);margin-bottom:12px}
-#g-txt{width:100%;font:inherit;font-size:21px;min-height:120px;border:2px solid var(--line);border-radius:16px;padding:14px;margin:0 0 14px}
+#g-txt{width:100%;font:inherit;font-size:18px;min-height:90px;border:2px solid var(--line);border-radius:16px;padding:14px;margin:0 0 14px}
 .g-salvo{position:fixed;inset:0;background:#1e7a3a;color:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;z-index:30;font-family:var(--display);font-size:40px;font-weight:700;text-align:center;padding:20px}
 .g-salvo svg{width:120px;height:120px;margin-bottom:10px}
 .g-salvo small{display:block;font-family:var(--text);font-size:20px;font-weight:500;margin-top:10px}
@@ -162,8 +163,8 @@ function cod(l){return ETAPA[l.status]||'';}
 function precisa(l){var c=cod(l);if(c==='AG')return true;
   if(!temRet(l))return c==='PR'?parado(l)>=3:true;
   if(c==='VA'||c==='VR')return parado(l)>=2;return parado(l)>=3;}
-// Ficha de cadastro só quando o cliente de aluguel já visitou ou está em negociação.
-function querCad(l){var c=cod(l);return !!l.cad||(l.negocio==='Locação'&&(c==='VR'||c==='NE'));}
+// Ficha de cadastro: aluguel a partir de Em atendimento (cliente pode querer aprovar antes de visitar).
+function querCad(l){var c=cod(l);return !!l.cad||(l.negocio==='Locação'&&['EA','VA','VR','NE'].indexOf(c)>=0);}
 function primeiro(n){n=String(n||'').trim().split(/\s+/)[0]||'';return n?n.charAt(0).toUpperCase()+n.slice(1).toLowerCase():'cliente';}
 function telWa(t){t=String(t||'').replace(/\D/g,'');if(!t)return'';if(t.length<=11)t='55'+t;return t;}
 
@@ -359,8 +360,8 @@ function gCliente(){
     '<div class="g-cli"><div class="n">'+esc(l.nome||'Sem nome')+'</div><div class="i">'+(im?esc(im.n||im.c):'Sem imóvel')+'</div><div class="s">'+esc(SITUACAO[c]||l.status)+'</div>'+
     (temRet(l)?'<div class="u">Sua última notícia: '+esc(l.ultimo.texto||l.ultimo.marca||'')+'</div>':'')+'</div>'+
     (wa?'<a class="g-btn wa" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">'+IC.wa+' Chamar no WhatsApp</a>':'')+
-    '<div class="g-q">O que aconteceu?</div>'+
-    opc.map(function(o){return '<button class="g-btn g-opc '+o.c+'" data-g="op" data-o="'+o.id+'">'+esc(o.t)+'</button>';}).join('')+
+    '<div class="g-q">O que aconteceu?</div><div class="g-grid">'+
+    opc.map(function(o){return '<button class="g-btn g-opc '+o.c+'" data-g="op" data-o="'+o.id+'">'+esc(o.t)+'</button>';}).join('')+'</div>'+
     (querCad(l)?'<button class="g-btn" data-g="cad">'+IC.doc+' Mandar a ficha de cadastro para o cliente preencher</button>':'')+
     '<button class="g-btn pq" data-g="pular">'+(G.solo?'Voltar para a lista':'Deixar para depois')+'</button>';
   window.scrollTo(0,0);
