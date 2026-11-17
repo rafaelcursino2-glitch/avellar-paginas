@@ -65,6 +65,7 @@ button{font:inherit;cursor:pointer}
 .folha .sub{color:var(--muted);font-size:14px;margin:0 0 12px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
 .chip{padding:10px 13px;border:1px solid var(--line);border-radius:99px;background:var(--bg);font-size:15px;color:var(--fg)}
+.rot{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
 textarea{width:100%;font:inherit;font-size:17px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;min-height:150px;resize:vertical}
 .dica{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);margin:8px 0 12px}
@@ -132,7 +133,7 @@ var API='https://script.google.com/macros/s/AKfycbyPbE5XsBfWM4k9WuX5HRf2aYE2LFf-
 (function(){var k=new URLSearchParams(location.search).get('k');try{if(k)localStorage.setItem('painelCarlosK',k);else k=localStorage.getItem('painelCarlosK');}catch(e){}window.K=k||'';})();
 function chama(fn){var a=[].slice.call(arguments,1),p;
   if(fn==='carregar')p={acao:'carregar',k:a[0],forcar:!!a[1]};
-  else if(fn==='salvarRetorno')p={acao:'salvar',k:a[0],lead:a[1],texto:a[2],marca:a[3]};
+  else if(fn==='salvarRetorno')p={acao:'salvar',k:a[0],lead:a[1],texto:a[2],marca:a[3],etapa:a[4]};
   else p={acao:'cadastro',k:a[0],lead:a[1],link:a[2]};
   if(!p.k)return Promise.reject(new Error('Abra pelo link do Carlos.'));
   return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)})
@@ -198,10 +199,19 @@ function fecha(){parar();document.body.classList.remove('aberta');atual=null;}
 
 /* ---- Retorno ---- */
 var rec=null,ouvindo=false,baseTexto='';
+var DESTINOS=[['EA','Em atendimento'],['VA','Visita agendada'],['VR','Visita realizada'],['NE','Negociação'],['FE','Fechou'],['IN','Inativar (desistiu)']];
+var SUGERE={'Falei com o cliente':'EA','Marcou visita':'VA','Visitou':'VR','Fez proposta':'NE','Desistiu':'IN','Alugou ou comprou outro':'IN','Sem perfil ou sem renda':'IN','Queria outra coisa':'IN'};
+var etapa='';
+function marcaEtapa(e){etapa=e;[].forEach.call(document.querySelectorAll('[data-e]'),function(c){c.classList.toggle('on',c.dataset.e===etapa);});
+  var d=$('dicaEtapa');if(d)d.textContent=etapa==='VA'?'Diga no texto o dia e a hora da visita.':etapa==='IN'?'Diga no texto o motivo.':etapa==='NE'?'Diga no texto o valor ou a proposta.':'';}
 function abreRetorno(id){
-  atual=lead(id);marca='';
+  atual=lead(id);marca='';etapa='';
+  var c=cod(atual),ordem=['AG','PR','EA','VA','VR','NE'],pos=ordem.indexOf(c);
+  var dest=DESTINOS.filter(function(d){var i=ordem.indexOf(d[0]);return d[0]!==c&&(i<0||i>pos);});
   abre('<h2>'+esc(atual.nome)+'</h2><div class="sub">'+nomeImovel(atual).replace(/<br>/g,' · ')+'</div>'+
     '<div class="chips">'+MARCAS.map(function(m){return '<button class="chip" data-m="'+esc(m)+'">'+esc(m)+'</button>';}).join('')+'</div>'+
+    '<div class="rot">Etapa no CRM</div><div class="chips"><button class="chip on" data-e="">Continua em '+esc(atual.status)+'</button>'+
+      dest.map(function(d){return '<button class="chip" data-e="'+d[0]+'">'+esc(d[1])+'</button>';}).join('')+'</div><div class="dica" id="dicaEtapa"></div>'+
     '<textarea id="texto" placeholder="Conte como está: falou com o cliente? O que ele disse? Marcou visita? Para quando?"></textarea>'+
     '<div class="dica"><button class="mic" id="mic" aria-label="Falar">'+IC.mic+'</button><span id="dicaTxt">Para falar em vez de digitar, toque no microfone do teclado do celular.</span></div>'+
     '<div class="linha"><button class="btn" id="cancelar">Cancelar</button><button class="btn pri" id="salvar">Salvar em '+esc(primeiro(atual.nome))+'</button></div>');
@@ -227,9 +237,10 @@ function salvar(){
   if(!t&&!marca){toast('Fale ou escreva o retorno antes de salvar.');return;}
   var b=$('salvar');b.disabled=true;b.textContent='Salvando…';
   var l=atual;
-  chama('salvarRetorno',window.K,l.id,t,marca).then(function(r){
+  var et=etapa;
+  chama('salvarRetorno',window.K,l.id,t,marca,et).then(function(r){
     l.ultimo={quando:r.quando,tipo:'RETORNO',marca:marca,texto:t,lancado:'PENDENTE'};
-    fecha();guarda(D);desenha();toast('Retorno salvo. O sistema lança no CRM.');
+    fecha();guarda(D);desenha();toast(et?'Retorno salvo. O sistema muda a etapa no CRM.':'Retorno salvo. O sistema lança no CRM.');
   }).catch(function(e){b.disabled=false;b.textContent='Salvar em '+primeiro(l.nome);toast('Não salvou: '+(e.message||e),5000);});
 }
 
@@ -260,7 +271,9 @@ document.addEventListener('click',function(e){
   if(t.dataset.f){filtro=t.dataset.f;$('busca').value='';desenha();window.scrollTo(0,0);}
   else if(t.dataset.r)abreRetorno(t.dataset.r);
   else if(t.dataset.c)abreCadastro(t.dataset.c);
-  else if(t.dataset.m){marca=marca===t.dataset.m?'':t.dataset.m;[].forEach.call(document.querySelectorAll('.chip'),function(c){c.classList.toggle('on',c.dataset.m===marca);});}
+  else if(t.dataset.m!==undefined){marca=marca===t.dataset.m?'':t.dataset.m;[].forEach.call(document.querySelectorAll('[data-m]'),function(c){c.classList.toggle('on',c.dataset.m===marca);});
+    var s=SUGERE[marca];if(s&&document.querySelector('[data-e="'+s+'"]'))marcaEtapa(s);}
+  else if(t.dataset.e!==undefined)marcaEtapa(t.dataset.e);
   else if(t.id==='mic')falar();
   else if(t.id==='salvar')salvar();
   else if(t.id==='cancelar')fecha();
