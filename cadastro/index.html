@@ -178,6 +178,8 @@ function addr(p,req,extra){
 }
 function isPF(){ return S.meta.tipo==="pf"; }
 function isFiador(){ return S.meta.papel==="fiador"; }
+function isRenda(){ return S.meta.papel==="renda"; }
+function papelTxt(){ return isFiador()?"Fiador":isRenda()?"Sócio ou compõe renda":"Locatário"; }
 function casado(){ return /^Casado/.test(get("pf.estado_civil")); }
 
 var IMOVEL_FIELDS = [
@@ -263,16 +265,15 @@ var STEPS_PF = [
    F("pf.cj.empresa","Empresa ou órgão onde trabalha","text"),
    F("pf.cj.cargo","Cargo","text",{half:1}),
    F("pf.cj.tel_trab","Telefone do trabalho","tel",{half:1})
- ].concat(addr("pf.cj.trab.",false))},
- { id:"solidarios", title:"Mais alguém na renda?", lead:"Pessoas maiores de 18 anos que vão somar renda com você.", items:[
+ ].concat(addr("pf.cj.trab.",false)).concat([
+   {note:function(){ return "O cônjuge também precisa conhecer o Aviso de Privacidade que aparece no fim deste formulário. Mostre o texto a ele ou a ela."; }},
+   F("pf.cj.ciente","O cônjuge leu o Aviso de Privacidade e está ciente de que os dados dele(a) serão usados nesta análise?","radio",{req:1,options:["Sim, está ciente"]})
+ ])},
+ { id:"solidarios", title:"Mais alguém na renda?", lead:"Pessoas maiores de 18 anos que vão somar renda com você.", when:function(){ return !isRenda(); }, items:[
    F("pf.tem_solid","Alguém vai compor renda com você?","radio",{req:1,options:["Sim","Não"]}),
+   {note:function(){ return get("pf.tem_solid")==="Sim" ? "Cada pessoa vai receber do corretor um link próprio e preencher o próprio cadastro. Aqui, só o nome e o celular para o corretor mandar o link." : ""; }},
    { rep:"solid", label:"Pessoa", max:3, when:function(){return get("pf.tem_solid")==="Sim";}, fields:[
-     F("nome","Nome completo","text",{req:1}), F("cpf","CPF","cpf",{req:1,half:1}), F("rg","RG","text",{half:1}),
-     F("parentesco","Grau de parentesco","text",{req:1,half:1}), F("celular","Celular","tel",{req:1,half:1}),
-     F("email","E-mail","email"), F("nacionalidade","Nacionalidade","text",{half:1,def:"Brasileira"}), F("naturalidade","Naturalidade","text",{half:1}),
-     F("profissao","Profissão","text",{half:1}), F("estado_civil","Estado civil","select",{half:1,options:ECIVIL}),
-     F("salario","Salário","money",{req:1,half:1}), F("outras","Outras rendas","money",{half:1}),
-     F("admissao","Data de admissão","date",{half:1}), F("firma","Empresa da qual é sócio (se houver)","text")
+     F("nome","Nome completo","text",{req:1}), F("parentesco","Grau de parentesco","text",{req:1,half:1}), F("celular","Celular","tel",{req:1,half:1})
    ]}
  ]},
  { id:"patrimonio", title:"Patrimônio", lead:"Imóveis registrados no seu nome.", items:[
@@ -312,9 +313,9 @@ var STEPS_PJ = [
    F("pj.sucessora","A empresa é sucessora de outra?","radio",{options:["Sim","Não"],def:"Não"}),
    F("pj.sucessora_info","Razão social anterior e praça","text",{req:1,when:function(){return get("pj.sucessora")==="Sim";}})
  ]},
- { id:"socios", title:"Sócios ou diretores", lead:"Coloque todos os sócios.", items:[
+ { id:"socios", title:"Sócios ou diretores", lead:"Coloque todos os sócios. Cada sócio vai receber do corretor um link próprio e preencher o próprio cadastro.", items:[
    { rep:"socios", label:"Sócio", max:6, min:1, fields:[
-     F("nome","Nome completo","text",{req:1}), F("cpf","CPF","cpf",{req:1,half:1}), F("rg","RG","text",{half:1}),
+     F("nome","Nome completo","text",{req:1}),
      F("cargo","Cargo ou função","text",{half:1}), F("participacao","Participação (%)","pct",{half:1,im:"decimal"}),
      F("telefone","Telefone","tel",{req:1,half:1}), F("email","E-mail","email",{half:1})
    ]}
@@ -338,14 +339,11 @@ function DOCS(){
     d.push({id:"residencia",t:"Comprovante de residência",req:1});
     d.push({id:"cartao",t:"Extrato do cartão de crédito"});
     if(casado()) d.push({id:"conjuge",t:"Identidade e CPF do cônjuge",req:1});
-    if(get("pf.tem_solid")==="Sim") d.push({id:"solidarios",t:"Documentos de quem compõe a renda",h:"Identidade, CPF e comprovante de renda"});
   } else {
     d.push({id:"cnpj",t:"Cartão CNPJ",req:1});
     d.push({id:"inscricao",t:"Inscrição estadual ou municipal"});
     d.push({id:"contrato",t:"Contrato social e última alteração",req:1});
     d.push({id:"ir_empresa",t:"Imposto de Renda da empresa",req:1});
-    d.push({id:"socios_id",t:"Identidade e CPF dos sócios",req:1});
-    d.push({id:"socios_res",t:"Comprovante de residência dos sócios",req:1});
   }
   if(isFiador()) d.push({id:"propriedade",t:"Prova de propriedade do imóvel",h:"Certidão do Registro de Imóveis ou escritura registrada",req:1});
   d.push({id:"outros",t:"Outros documentos"});
@@ -393,7 +391,7 @@ function itemsHTML(items, base){
   items.forEach(function(it){
     if(it.when && !it.when()) return;
     if(it.sub){ h+='<div class="full"><h2>'+esc(it.sub)+'</h2></div>'; return; }
-    if(it.note){ h+='<div class="full note">'+esc(it.note())+'</div>'; return; }
+    if(it.note){ var nt=it.note(); if(nt) h+='<div class="full note">'+esc(nt)+'</div>'; return; }
     if(it.total){ var n=it.total.reduce(function(a,k){return a+money2n(get(k));},0); h+='<div class="full total"><span>'+esc(it.label)+'</span><span data-total="'+it.total.join(",")+'">'+fmtMoney(n)+'</span></div>'; return; }
     if(it.rep){
       var arr=get(it.rep); if(!Array.isArray(arr)){ arr=[]; set(it.rep,arr); }
@@ -435,7 +433,7 @@ function render(){
   var s=st[S.step-1];
   var pct=Math.round((S.step/(st.length))*100);
   var h=(LIVE?"":'<div class="prev">Prévia: nada é enviado daqui.</div>')+
-    '<div class="bar"><i style="width:'+pct+'%"></i></div><div class="stepinfo">Etapa '+S.step+' de '+st.length+' · '+(isPF()?"Pessoa física":"Pessoa jurídica")+' · '+(isFiador()?"Fiador":"Locatário")+'</div>'+
+    '<div class="bar"><i style="width:'+pct+'%"></i></div><div class="stepinfo">Etapa '+S.step+' de '+st.length+' · '+(isPF()?"Pessoa física":"Pessoa jurídica")+' · '+papelTxt()+'</div>'+
     '<h1>'+esc(s.title)+'</h1>'+(s.lead?'<p class="lead">'+esc(s.lead)+'</p>':"");
   if(s.locked) h+=negBox();
   else if(s.id==="imovel" && S.meta.imovel) h+=imovelBox()+'<p class="lead">Já sabemos o imóvel. Os campos abaixo são opcionais.</p>';
@@ -459,9 +457,9 @@ function renderStart(){
    chipBig("tipo","pf","Pessoa física","Para você, com seu CPF")+chipBig("tipo","pj","Pessoa jurídica","Para uma empresa, com CNPJ")+
    '</div><div class="err">Escolha uma opção</div></div></div>'+
    '<div class="card"><div class="fld"><label class="l">Você será <span class="req">*</span></label><div class="big">'+
-   chipBig("papel","locatario","Locatário","Quem vai alugar o imóvel")+chipBig("papel","fiador","Fiador","Quem garante o aluguel de outra pessoa")+
+   chipBig("papel","locatario","Locatário","Quem vai alugar o imóvel")+chipBig("papel","fiador","Fiador","Quem garante o aluguel de outra pessoa")+chipBig("papel","renda","Sócio ou compõe renda","Vai somar renda com quem aluga, ou é sócio da empresa que aluga")+
    '</div><div class="err">Escolha uma opção</div></div></div>';
-  if(S.meta.papel==="fiador") h+='<div class="card"><div class="fld full" data-path="__afianca"><label class="l" for="f_af">Nome de quem você vai afiançar <span class="req">*</span></label><input id="f_af" data-meta="afiancado" value="'+esc(S.meta.afiancado||"")+'"><div class="err">Escreva o nome</div></div></div>';
+  if(S.meta.papel==="fiador"||S.meta.papel==="renda") h+='<div class="card"><div class="fld full" data-path="__afianca"><label class="l" for="f_af">'+(S.meta.papel==="fiador"?"Nome de quem você vai afiançar":"Nome de quem vai alugar (pessoa ou empresa)")+' <span class="req">*</span></label><input id="f_af" data-meta="afiancado" value="'+esc(S.meta.afiancado||"")+'"><div class="err">Escreva o nome</div></div></div>';
   if(!S.meta.imovel) h+='<div class="card"><div class="fld full"><label class="l" for="f_imv">Qual imóvel? </label><input id="f_imv" data-meta="imovel_cliente" placeholder="Ex.: Aptº 1901, Edf Rio Blanco" value="'+esc(S.meta.imovel_cliente||"")+'"><div class="hint">Se souber</div></div></div>';
   app.innerHTML=h;
   bBack.style.visibility="hidden";
@@ -540,15 +538,24 @@ function validate(s,show){
 function stepMissing(s){ return visibleFields(s).filter(function(x){ return !!checkField(x.f,get(x.path)); }).length; }
 
 /* ---------- Final ---------- */
-var CONSENT="Autorizo a Avellar Imóveis Ltda ou a quem ela indicar a fazer pesquisas nos cadastros de proteção ao crédito (SERASA, SPC, SCI etc.) sobre mim ou a empresa proponente, cônjuge e locatários solidários, e a usar estes dados e os anexos, a qualquer tempo, na defesa de seus direitos relacionados a esta locação. Declaro que as informações desta ficha e os anexos são verdadeiros e completos, e que respondo civil e criminalmente por eventual falsidade.";
-var LGPD=[
- "Usamos seus dados só para analisar este pedido de locação e, se aprovado, para fazer e administrar o contrato.",
- "A consulta ao SERASA, SPC e similares serve para proteger o crédito da locação.",
- "Compartilhamos os dados só com o proprietário do imóvel e, se você escolher seguro-fiança, com a seguradora. Não vendemos dados.",
- "Se a locação não for fechada, apagamos seus dados e documentos em até 6 meses. Se for fechada, guardamos durante o contrato e pelo prazo que a lei exige.",
- "Você pode pedir acesso, correção ou exclusão dos seus dados pelo e-mail avellarimoveis@avellarimoveis.com.br.",
- "Declaro que as pessoas cujos dados informei (cônjuge, quem compõe renda, sócios) sabem disso e concordam."
+var TERMOS_VERSAO="v2 - 17/11/2026 (revisão jurídica)";
+var AVISO=[
+ ["Finalidade","Utilizamos seus dados pessoais para identificar e analisar sua proposta de locação, realizar avaliações cadastrais e financeiras e, caso aprovada, formalizar e administrar o contrato de locação."],
+ ["Consultas cadastrais","Poderemos consultar bancos de dados e cadastros de proteção ao crédito, como SERASA, SPC e similares, para verificar informações cadastrais e financeiras e subsidiar a análise de risco da operação locatícia, observadas as bases legais aplicáveis."],
+ ["Compartilhamento","Seus dados poderão ser compartilhados com o proprietário do imóvel, empresas de análise cadastral e de crédito, seguradoras, empresas garantidoras, plataformas de assinatura eletrônica e demais prestadores de serviços necessários à análise, formalização e administração da locação. A Avellar não comercializa dados pessoais."],
+ ["Armazenamento","Caso a locação não seja concretizada, os dados e documentos serão eliminados ou anonimizados, em regra, no prazo de até 6 (seis) meses após o encerramento da análise, ressalvadas as hipóteses legais de conservação, como o cumprimento de obrigação legal e o exercício regular de direitos. Se a locação for concretizada, os dados serão mantidos durante a relação contratual e pelos prazos legalmente aplicáveis após seu encerramento."],
+ ["Seus direitos","Você poderá solicitar informações sobre o tratamento de seus dados pessoais e exercer os direitos previstos na LGPD, incluindo confirmação de tratamento, acesso, correção, anonimização, bloqueio ou eliminação, quando cabíveis, pelo e-mail avellarimoveis@avellarimoveis.com.br."],
+ ["Encarregado pelo tratamento de dados","Rafael Cursino. Contato: avellarimoveis@avellarimoveis.com.br."],
+ ["Dados de terceiros","Ao fornecer dados pessoais de outras pessoas, como cônjuge, sócios ou integrantes da composição de renda, declaro que as informei sobre o fornecimento dessas informações à Avellar Imóveis Ltda., ciente de que cada titular deverá ter acesso às informações relativas ao tratamento de seus dados pessoais, nos termos da LGPD. Sócios e pessoas que compõem a renda preenchem o próprio cadastro, por link próprio."]
 ];
+var DECLARACAO=[
+ "Autorizo a AVELLAR IMÓVEIS LTDA., diretamente ou por meio de terceiros por ela contratados, a realizar consultas e pesquisas em bancos de dados públicos e privados, inclusive cadastros de proteção ao crédito, tais como SERASA, SPC, SCI e similares, bem como a utilizar as informações fornecidas nesta ficha e os documentos apresentados para fins de análise cadastral, financeira e de crédito, avaliação de risco, formalização e acompanhamento de propostas e negócios imobiliários, incluindo locações, com seus respectivos locatários, fiadores, garantidores e responsáveis solidários, e operações de compra e venda de imóveis, envolvendo proponentes compradores e vendedores, quando pertinente.",
+ "Declaro que todas as informações prestadas e os documentos apresentados são verdadeiros, completos e atualizados, responsabilizando-me civil e criminalmente, na forma da lei, por eventuais declarações falsas, omissões ou apresentação de documentos inverídicos.",
+ "Declaro, ainda, que li e estou ciente das informações constantes no Aviso de Privacidade e Tratamento de Dados Pessoais da AVELLAR IMÓVEIS LTDA., nos termos da Lei nº 13.709/2018 (LGPD), especialmente quanto às finalidades, hipóteses legais, compartilhamento, armazenamento e direitos dos titulares dos dados pessoais, inclusive para o exercício regular de direitos e a defesa de interesses relacionados às operações imobiliárias."
+];
+var IP="";
+function pegaIP(){ if(IP||!LIVE||!window.fetch) return; try{ var ctl=window.AbortController?new AbortController():null; if(ctl) setTimeout(function(){ctl.abort();},4000);
+  fetch("https://api.ipify.org?format=json",ctl?{signal:ctl.signal}:{}).then(function(r){return r.json();}).then(function(o){ IP=(o&&o.ip)||""; }).catch(function(){}); }catch(e){} }
 function finalHTML(){
   var st=steps(), h='<div class="card">';
   st.forEach(function(s,i){
@@ -566,9 +573,13 @@ function finalHTML(){
      '<li>Renda mínima (locatário e fiador): 4 vezes o valor das despesas (aluguel e taxas).</li>'+
      '<li>O locatário apresenta fiador com imóvel próprio, ou outra garantia aprovada pelo proprietário ou pela imobiliária.</li>'+
      '<li>O imóvel do fiador deve ficar na Região Metropolitana do Recife, registrado em cartório e livre de dívida.</li></ul></div>'+
-     '<h2>Proteção de dados (LGPD)</h2><div class="card"><ol class="list">'+LGPD.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol></div>'+
-     '<h2>Autorização</h2><div class="card"><div class="fld full" data-path="__consent"><label class="consent"><input type="checkbox" id="consent"'+(S.meta.consent?" checked":"")+'><span>'+esc(CONSENT)+' Li e concordo com o texto de Proteção de dados (LGPD) acima.</span></label><div class="err">Marque para poder enviar</div></div>'+
-     '<div class="fld full" data-path="__assin" style="margin-top:14px"><label class="l" for="assin">Assinatura: escreva seu nome completo <span class="req">*</span></label><input id="assin" autocomplete="name" value="'+esc(S.meta.assinatura||"")+'"><div class="err">Escreva seu nome completo</div></div></div>';
+     '<h2>Termos</h2>'+
+     '<div class="card"><h3 style="margin:0 0 8px">Aviso de Privacidade e Proteção de Dados Pessoais (LGPD)</h3>'+AVISO.map(function(x){return '<p style="font-size:14px;margin:0 0 8px"><b>'+esc(x[0])+':</b> '+esc(x[1])+'</p>';}).join('')+'</div>'+
+     '<div class="card"><h3 style="margin:0 0 8px">Declaração de Veracidade e Autorização de Consulta Cadastral</h3>'+DECLARACAO.map(function(x){return '<p style="font-size:14px;margin:0 0 8px">'+esc(x)+'</p>';}).join('')+'</div>'+
+     '<div class="card"><div class="fld full" data-path="__consent"><label class="consent"><input type="checkbox" id="consent"'+(S.meta.consent?" checked":"")+'><span><b>Li e concordo com os termos acima.</b></span></label><div class="err">Marque para poder enviar</div></div>'+
+     '<div class="fld full" data-path="__assin" style="margin-top:14px"><label class="l" for="assin">Assinatura: escreva seu nome completo <span class="req">*</span></label><input id="assin" autocomplete="name" value="'+esc(S.meta.assinatura||"")+'"><div class="err">Escreva seu nome completo</div></div>'+
+     '<div class="fld full" data-path="__acpf" style="margin-top:14px"><label class="l" for="acpf">Seu CPF <span class="req">*</span></label><input id="acpf" inputmode="numeric" value="'+esc(S.meta.aceite_cpf||(isPF()?get("pf.cpf"):""))+'"><div class="err">Escreva um CPF válido</div></div></div>';
+  pegaIP();
   return h;
 }
 
@@ -578,8 +589,9 @@ function buildSummary(){
   var secs=[];
   secs.push({titulo:"Cadastro", linhas:[
     ["Tipo", isPF()?"Pessoa física":"Pessoa jurídica"],
-    ["Preenchido como", isFiador()?"Fiador":"Locatário"],
+    ["Preenchido como", papelTxt()],
     ["Fiador de", isFiador()?(S.meta.afiancado||""):""],
+    ["Compõe renda ou é sócio de", isRenda()?(S.meta.afiancado||""):""],
     ["Imóvel (do link)", S.meta.imovel||""],
     ["Imóvel (informado pelo cliente)", S.meta.imovel_cliente||""],
     ["Corretor", S.meta.corretor||""]
@@ -606,7 +618,8 @@ function buildSummary(){
     n:NEG?NEG.id:"", tipo:S.meta.tipo, papel:S.meta.papel, imovel:S.meta.imovel||S.meta.imovel_cliente||"", corretor:S.meta.corretor||"",
     nome:nome, documento: isPF()?get("pf.cpf"):get("pj.cnpj"),
     contato: isPF()? (get("pf.celular")+" · "+get("pf.email")) : (get("pj.telefone")+" · "+get("pj.email")),
-    secoes:secs, autorizacao:CONSENT, lgpd:LGPD, dispositivo:(navigator.userAgent||'').slice(0,200), assinatura:S.meta.assinatura||"",
+    secoes:secs, termos_versao:TERMOS_VERSAO, aviso:AVISO, declaracao:DECLARACAO, dispositivo:(navigator.userAgent||'').slice(0,200), assinatura:S.meta.assinatura||"",
+    aceite:{ nome:S.meta.assinatura||"", cpf:String(S.meta.aceite_cpf||"").replace(/\D/g,""), ip:IP, versao:TERMOS_VERSAO, marcadoEm:new Date().toISOString(), texto:"Li e concordo com os termos acima." },
     respostas:S.v, meta:S.meta, preenchidoEm:new Date().toISOString()
   };
 }
@@ -642,11 +655,13 @@ function send(){
   });
 }
 function finish(prot, missing){
+  var outros=(get("pf.tem_solid")==="Sim"&&isPF()?(get("solid")||[]):isPF()?[]:(get("socios")||[])).map(function(o){return o&&o.nome;}).filter(Boolean);
   clearDraft();
   nav.style.display="none";
   app.innerHTML='<div class="done-ic">✓</div><h1 class="center">Cadastro recebido</h1><p class="lead center">Obrigado! A Avellar vai analisar e o corretor fala com você.</p>'+
     '<div class="card"><div class="sum-row"><span>Protocolo</span><b>'+esc(prot)+'</b></div></div>'+
-    (missing.length?'<div class="note">Ainda falta mandar ao corretor: '+missing.map(esc).join("; ")+'.</div>':"");
+    (missing.length?'<div class="note">Ainda falta mandar ao corretor: '+missing.map(esc).join("; ")+'.</div>':"")+
+    (outros.length?'<div class="note">O corretor vai mandar um link para cada pessoa preencher o próprio cadastro: '+outros.map(esc).join("; ")+'.</div>':"");
   S={step:0,meta:{},v:{},files:{},attempted:{},sent:true};
 }
 
@@ -654,19 +669,19 @@ function finish(prot, missing){
 app.addEventListener("input",function(e){
   var t=e.target;
   if(t.dataset.meta){ if(t.type!=="radio"){ S.meta[t.dataset.meta]=t.value; save(); } return; }
+  if(t.id==="assin"||t.id==="acpf"){ if(t.id==="assin") S.meta.assinatura=t.value; else S.meta.aceite_cpf=t.value; var f0=t.closest(".fld"); if(f0) f0.classList.remove("bad"); save(); return; }
   if(!t.dataset.k) return;
   var m=t.dataset.m;
   if(m && MASK[m]){ var pos=t.value.length; t.value=MASK[m](t.value); }
   set(t.dataset.k,t.value);
   var fl=t.closest(".fld"); if(fl && fl.classList.contains("bad")){ fl.classList.remove("bad"); }
   app.querySelectorAll("[data-total]").forEach(function(el){ el.textContent=fmtMoney(el.dataset.total.split(",").reduce(function(a,k){return a+money2n(get(k));},0)); });
-  if(t.id==="assin") S.meta.assinatura=t.value;
   if(t.dataset.addr!=null && dig(t.value).length===8) cep(t.dataset.addr, dig(t.value));
   save();
 });
 app.addEventListener("change",function(e){
   var t=e.target;
-  if(t.dataset.meta && t.type==="radio"){ S.meta[t.dataset.meta]=t.value; save(); if(S.step===0) renderStart(); return; }
+  if(t.dataset.meta && t.type==="radio"){ S.meta[t.dataset.meta]=t.value; if(S.meta.papel==="renda") S.meta.tipo="pf"; save(); if(S.step===0) renderStart(); return; }
   if(t.id==="consent"){ S.meta.consent=t.checked; save(); return; }
   if(t.type==="radio" && t.dataset.k){ set(t.dataset.k,t.value); save(); var y=window.scrollY; render(); window.scrollTo(0,y); return; }
   if(t.tagName==="SELECT" && t.dataset.k){ set(t.dataset.k,t.value); save(); return; }
@@ -718,9 +733,11 @@ bNext.addEventListener("click",function(){
   if(s.final){
     var c=document.getElementById("consent"), a=document.getElementById("assin");
     var fc=app.querySelector('[data-path="__consent"]'), fa=app.querySelector('[data-path="__assin"]');
-    var okc=c&&c.checked, oka=a && a.value.trim().split(/\s+/).length>=2;
-    if(fc) fc.classList.toggle("bad",!okc); if(fa) fa.classList.toggle("bad",!oka);
-    if(!okc||!oka) return;
+    var cp=document.getElementById("acpf"), fp=app.querySelector('[data-path="__acpf"]');
+    var okc=c&&c.checked, oka=a && a.value.trim().split(/\s+/).length>=2, okp=cp && String(cp.value).replace(/\D/g,"").length===11;
+    if(fc) fc.classList.toggle("bad",!okc); if(fa) fa.classList.toggle("bad",!oka); if(fp) fp.classList.toggle("bad",!okp);
+    if(!okc||!oka||!okp) return;
+    S.meta.assinatura=a.value.trim(); S.meta.aceite_cpf=cp.value; S.meta.consent=true;
     var blocking=st.filter(function(x){return !x.final && !x.docs && stepMissing(x)>0;});
     if(blocking.length){ var idx=st.indexOf(blocking[0]); S.attempted[blocking[0].id]=true; S.step=idx+1; render(); alertBox("Falta preencher alguns campos obrigatórios nesta etapa."); return; }
     send(); return;
@@ -736,7 +753,8 @@ function start(){
   if(NEG){ S.meta.imovel=NEG.imovel_nome; S.meta.corretor=NEG.corretor; if(NEG.tipo) S.meta.tipo=S.meta.tipo||NEG.tipo; }
   if(URLP.corretor) S.meta.corretor=URLP.corretor;
   if(URLP.tipo==="pf"||URLP.tipo==="pj") S.meta.tipo = S.meta.tipo || URLP.tipo;
-  if(URLP.papel==="locatario"||URLP.papel==="fiador") S.meta.papel = S.meta.papel || URLP.papel;
+  if(URLP.papel==="locatario"||URLP.papel==="fiador"||URLP.papel==="renda") S.meta.papel = S.meta.papel || URLP.papel;
+  if(S.meta.papel==="renda") S.meta.tipo="pf";
   if(S.step>0 && !S.meta.tipo) S.step=0;
   render();
 }
