@@ -326,9 +326,16 @@ function abreCadastro(id){
   atual=lead(id);
   var im=atual.imoveis[0]||{c:'',n:''};
   var nomeIm=im.n||im.c||'';
+  if(!atual.cad){
+    abre('<h2>Enviar cadastro</h2><div class="sub">'+esc(atual.nome)+' · '+esc(nomeIm||'sem imóvel no lead')+'</div>'+
+      '<div class="erro">Ainda não dá para enviar o cadastro deste cliente.</div>'+
+      '<div class="dica">Os valores da negociação ainda não chegaram ao painel. Avise o Rafael e espere. Quando estiver pronto, o botão funciona aqui.</div>'+
+      '<div class="linha"><button class="btn" id="cancelar">Fechar</button></div>');
+    return;
+  }
   var ch=function(k,v,t){return '<button class="chip'+(CAD[k]===v?' on':'')+'" data-cad="'+k+':'+v+'">'+t+'</button>';};
   abre('<h2>Enviar cadastro</h2><div class="sub">'+esc(atual.nome)+' · '+esc(nomeIm||'sem imóvel no lead')+'</div>'+
-    (atual.cad?'<div class="dica">Link com os valores da negociação lançada no CRM.</div>':'<div class="dica">Ainda sem negociação lançada: o cliente preenche sem os valores.</div>')+
+    '<div class="dica">Link com os valores da negociação lançada no CRM.</div>'+
     '<div class="rot">Garantia</div><div class="chips">'+ch('g','seguro','Seguro-fiança')+ch('g','fiador','Fiador')+'</div>'+
     (CAD.g?'<div class="rot">Para quem é este link</div><div class="chips">'+ch('p','locatario','Cliente')+(CAD.g==='fiador'?ch('p','fiador','Fiador'):'')+ch('p','renda','Sócio ou compõe renda')+'</div>':'<div class="dica">Escolha a garantia. Ela define os documentos que o cliente vai mandar.</div>')+
     '<div id="cadCorpo"></div>');
