@@ -179,6 +179,8 @@ function addr(p,req,extra){
 function isPF(){ return S.meta.tipo==="pf"; }
 function isFiador(){ return S.meta.papel==="fiador"; }
 function isRenda(){ return S.meta.papel==="renda"; }
+function isSeguro(){ return S.meta.garantia==="seguro"; }
+function garantiaTxt(){ return S.meta.garantia==="seguro"?"Seguro-fiança":S.meta.garantia==="fiador"?"Fiador":""; }
 function papelTxt(){ return isFiador()?"Fiador":isRenda()?"Sócio ou compõe renda":"Locatário"; }
 function casado(){ return /^Casado/.test(get("pf.estado_civil")); }
 
@@ -253,7 +255,12 @@ var STEPS_PF = [
    F("pf.firma.capital","Capital registrado","money",{half:1,when:function(){return get("pf.socio")==="Sim";}}),
    F("pf.firma.data","Data","date",{half:1,when:function(){return get("pf.socio")==="Sim";}})
  ])},
- { id:"conjuge", title:"Cônjuge", lead:"Dados do marido ou da esposa.", when:casado, items:[
+ { id:"conjuge_f", title:"Cônjuge", lead:"A fiança só vale com o aceite dos dois.", when:function(){ return casado() && isFiador(); }, items:[
+   {note:function(){ return "Seu marido ou sua esposa também precisa preencher o próprio cadastro como fiador, pelo link que o corretor vai mandar. Cada um dá o próprio aceite."; }},
+   F("pf.cjf.nome","Nome completo do cônjuge","text",{req:1}),
+   F("pf.cjf.celular","Celular do cônjuge","tel",{req:1,half:1})
+ ]},
+ { id:"conjuge", title:"Cônjuge", lead:"Dados do marido ou da esposa.", when:function(){ return casado() && !isFiador(); }, items:[
    F("pf.cj.nome","Nome completo","text",{req:1}),
    F("pf.cj.cpf","CPF","cpf",{req:1,half:1}),
    F("pf.cj.rg","RG","text",{half:1}),
@@ -335,15 +342,16 @@ function DOCS(){
   var d=[];
   if(isPF()){
     d.push({id:"identidade",t:"Identidade e CPF",req:1});
-    d.push({id:"renda",t:"Comprovante de renda dos últimos 3 meses",h:"Contracheque, holerite ou declaração do Imposto de Renda",req:1});
+    var seg=isSeguro() && !isFiador();
+    d.push({id:"renda",t:"Comprovante de renda dos últimos 3 meses",h:seg?"Se tiver: contracheque, holerite ou declaração do Imposto de Renda":"Contracheque, holerite ou declaração do Imposto de Renda",req:seg?0:1});
     d.push({id:"residencia",t:"Comprovante de residência",req:1});
-    d.push({id:"cartao",t:"Extrato do cartão de crédito"});
-    if(casado()) d.push({id:"conjuge",t:"Identidade e CPF do cônjuge",req:1});
+    if(!seg) d.push({id:"cartao",t:"Extrato do cartão de crédito"});
+    if(casado() && !seg && !isFiador()) d.push({id:"conjuge",t:"Identidade e CPF do cônjuge",req:1});
   } else {
     d.push({id:"cnpj",t:"Cartão CNPJ",req:1});
     d.push({id:"inscricao",t:"Inscrição estadual ou municipal"});
     d.push({id:"contrato",t:"Contrato social e última alteração",req:1});
-    d.push({id:"ir_empresa",t:"Imposto de Renda da empresa",req:1});
+    d.push({id:"ir_empresa",t:"Imposto de Renda da empresa",req:isSeguro()&&!isFiador()?0:1});
   }
   if(isFiador()) d.push({id:"propriedade",t:"Prova de propriedade do imóvel",h:"Certidão do Registro de Imóveis ou escritura registrada",req:1});
   d.push({id:"outros",t:"Outros documentos"});
@@ -413,13 +421,14 @@ function itemsHTML(items, base){
 }
 
 function imovelBox(){
-  if(!S.meta.imovel) return "";
-  return '<div class="imv"><div><span class="muted">Imóvel</span><b>'+esc(S.meta.imovel)+'</b></div></div>';
+  if(!S.meta.imovel && !garantiaTxt()) return "";
+  return '<div class="imv"><div>'+(S.meta.imovel?'<span class="muted">Imóvel</span><b>'+esc(S.meta.imovel)+'</b>':"")+(garantiaTxt()?'<div><span class="muted">Garantia: </span><b>'+garantiaTxt()+'</b></div>':"")+'</div></div>';
 }
 function negBox(){
   if(!NEG) return "";
   var h='<div class="card"><div class="muted" style="font-size:13px">Imóvel</div><div style="font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:4px">'+esc(NEG.imovel_nome)+'</div>'+(NEG.endereco?'<div class="muted" style="font-size:14px;margin-bottom:8px">'+esc(NEG.endereco)+'</div>':"");
   (NEG.valores||[]).forEach(function(l){ h+='<div class="sum-row"><span>'+esc(l[0])+'</span><b>'+esc(l[1])+'</b></div>'; });
+  if(garantiaTxt()) h+='<div class="sum-row"><span>Garantia</span><b>'+garantiaTxt()+'</b></div>';
   if(NEG.observacoes) h+='<div class="note" style="margin:10px 0 0">'+esc(NEG.observacoes)+'</div>';
   return h+'</div>';
 }
@@ -457,7 +466,7 @@ function renderStart(){
    chipBig("tipo","pf","Pessoa física","Para você, com seu CPF")+chipBig("tipo","pj","Pessoa jurídica","Para uma empresa, com CNPJ")+
    '</div><div class="err">Escolha uma opção</div></div></div>'+
    '<div class="card"><div class="fld"><label class="l">Você será <span class="req">*</span></label><div class="big">'+
-   chipBig("papel","locatario","Locatário","Quem vai alugar o imóvel")+chipBig("papel","fiador","Fiador","Quem garante o aluguel de outra pessoa")+chipBig("papel","renda","Sócio ou compõe renda","Vai somar renda com quem aluga, ou é sócio da empresa que aluga")+
+   chipBig("papel","locatario","Locatário","Quem vai alugar o imóvel")+(isSeguro()?"":chipBig("papel","fiador","Fiador","Quem garante o aluguel de outra pessoa"))+chipBig("papel","renda","Sócio ou compõe renda","Vai somar renda com quem aluga, ou é sócio da empresa que aluga")+
    '</div><div class="err">Escolha uma opção</div></div></div>';
   if(S.meta.papel==="fiador"||S.meta.papel==="renda") h+='<div class="card"><div class="fld full" data-path="__afianca"><label class="l" for="f_af">'+(S.meta.papel==="fiador"?"Nome de quem você vai afiançar":"Nome de quem vai alugar (pessoa ou empresa)")+' <span class="req">*</span></label><input id="f_af" data-meta="afiancado" value="'+esc(S.meta.afiancado||"")+'"><div class="err">Escreva o nome</div></div></div>';
   if(!S.meta.imovel) h+='<div class="card"><div class="fld full"><label class="l" for="f_imv">Qual imóvel? </label><input id="f_imv" data-meta="imovel_cliente" placeholder="Ex.: Aptº 1901, Edf Rio Blanco" value="'+esc(S.meta.imovel_cliente||"")+'"><div class="hint">Se souber</div></div></div>';
@@ -571,8 +580,9 @@ function finalHTML(){
   h+='<h2>Condições gerais</h2><div class="card"><ul class="list">'+
      '<li>Contrato residencial: 30 meses.</li><li>Contrato não residencial: mínimo de 12 meses.</li>'+
      '<li>Renda mínima (locatário e fiador): 4 vezes o valor das despesas (aluguel e taxas).</li>'+
+     (isSeguro()&&!isFiador()?'<li>Garantia: seguro-fiança, sujeito à aprovação da seguradora.</li></ul></div>':
      '<li>O locatário apresenta fiador com imóvel próprio, ou outra garantia aprovada pelo proprietário ou pela imobiliária.</li>'+
-     '<li>O imóvel do fiador deve ficar na Região Metropolitana do Recife, registrado em cartório e livre de dívida.</li></ul></div>'+
+     '<li>O imóvel do fiador deve ficar na Região Metropolitana do Recife, registrado em cartório e livre de dívida. Se o fiador for casado, os dois preenchem o cadastro e dão o aceite.</li></ul></div>')+
      '<h2>Termos</h2>'+
      '<div class="card"><h3 style="margin:0 0 8px">Aviso de Privacidade e Proteção de Dados Pessoais (LGPD)</h3>'+AVISO.map(function(x){return '<p style="font-size:14px;margin:0 0 8px"><b>'+esc(x[0])+':</b> '+esc(x[1])+'</p>';}).join('')+'</div>'+
      '<div class="card"><h3 style="margin:0 0 8px">Declaração de Veracidade e Autorização de Consulta Cadastral</h3>'+DECLARACAO.map(function(x){return '<p style="font-size:14px;margin:0 0 8px">'+esc(x)+'</p>';}).join('')+'</div>'+
@@ -590,6 +600,7 @@ function buildSummary(){
   secs.push({titulo:"Cadastro", linhas:[
     ["Tipo", isPF()?"Pessoa física":"Pessoa jurídica"],
     ["Preenchido como", papelTxt()],
+    ["Garantia", garantiaTxt()],
     ["Fiador de", isFiador()?(S.meta.afiancado||""):""],
     ["Compõe renda ou é sócio de", isRenda()?(S.meta.afiancado||""):""],
     ["Imóvel (do link)", S.meta.imovel||""],
@@ -615,7 +626,7 @@ function buildSummary(){
   var nome = isPF()? get("pf.nome") : get("pj.razao");
   return {
     versao:1,
-    n:NEG?NEG.id:"", tipo:S.meta.tipo, papel:S.meta.papel, imovel:S.meta.imovel||S.meta.imovel_cliente||"", corretor:S.meta.corretor||"",
+    n:NEG?NEG.id:"", garantia:S.meta.garantia||"", tipo:S.meta.tipo, papel:S.meta.papel, imovel:S.meta.imovel||S.meta.imovel_cliente||"", corretor:S.meta.corretor||"",
     nome:nome, documento: isPF()?get("pf.cpf"):get("pj.cnpj"),
     contato: isPF()? (get("pf.celular")+" · "+get("pf.email")) : (get("pj.telefone")+" · "+get("pj.email")),
     secoes:secs, termos_versao:TERMOS_VERSAO, aviso:AVISO, declaracao:DECLARACAO, dispositivo:(navigator.userAgent||'').slice(0,200), assinatura:S.meta.assinatura||"",
@@ -655,12 +666,14 @@ function send(){
   });
 }
 function finish(prot, missing){
+  var cjf=(isFiador()&&casado())?get("pf.cjf.nome"):"";
   var outros=(get("pf.tem_solid")==="Sim"&&isPF()?(get("solid")||[]):isPF()?[]:(get("socios")||[])).map(function(o){return o&&o.nome;}).filter(Boolean);
   clearDraft();
   nav.style.display="none";
   app.innerHTML='<div class="done-ic">✓</div><h1 class="center">Cadastro recebido</h1><p class="lead center">Obrigado! A Avellar vai analisar e o corretor fala com você.</p>'+
     '<div class="card"><div class="sum-row"><span>Protocolo</span><b>'+esc(prot)+'</b></div></div>'+
     (missing.length?'<div class="note">Ainda falta mandar ao corretor: '+missing.map(esc).join("; ")+'.</div>':"")+
+    (cjf?'<div class="note">Falta o cadastro do seu cônjuge, '+esc(cjf)+'. O corretor vai mandar o link para ele ou ela preencher como fiador.</div>':"")+
     (outros.length?'<div class="note">O corretor vai mandar um link para cada pessoa preencher o próprio cadastro: '+outros.map(esc).join("; ")+'.</div>':"");
   S={step:0,meta:{},v:{},files:{},attempted:{},sent:true};
 }
@@ -755,6 +768,9 @@ function start(){
   if(URLP.tipo==="pf"||URLP.tipo==="pj") S.meta.tipo = S.meta.tipo || URLP.tipo;
   if(URLP.papel==="locatario"||URLP.papel==="fiador"||URLP.papel==="renda") S.meta.papel = S.meta.papel || URLP.papel;
   if(S.meta.papel==="renda") S.meta.tipo="pf";
+  if(URLP.g==="seguro"||URLP.g==="fiador") S.meta.garantia=URLP.g;
+  if(NEG && (NEG.garantia==="seguro"||NEG.garantia==="fiador")) S.meta.garantia=NEG.garantia;
+  if(isSeguro() && S.meta.papel==="fiador") S.meta.papel="";
   if(S.step>0 && !S.meta.tipo) S.step=0;
   render();
 }

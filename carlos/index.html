@@ -319,25 +319,45 @@ function salvar(){
 }
 
 /* ---- Cadastro ---- */
+var FORM_CAD='https://rafaelcursino2-glitch.github.io/avellar-paginas/cadastro/';
+var CAD={g:'',p:'locatario'};
 function abreCadastro(id){
+  if(!atual||String(atual.id)!==String(id)) CAD={g:'',p:'locatario'};
   atual=lead(id);
   var im=atual.imoveis[0]||{c:'',n:''};
   var nomeIm=im.n||im.c||'';
-  var link=atual.cad?D.form+'?n='+encodeURIComponent(atual.cad):D.form+'?imovel='+encodeURIComponent(nomeIm)+'&corretor='+encodeURIComponent(D.corretor);
-  var msg='Olá, '+primeiro(atual.nome)+'! Aqui é o Carlos, da Avellar Imóveis. Para seguirmos com a locação'+(nomeIm?' do imóvel '+nomeIm:'')+', preencha o cadastro pelo celular neste link: '+link+'\nQualquer dúvida, estou à disposição.';
-  var wa=telWa(atual.tel);
+  var ch=function(k,v,t){return '<button class="chip'+(CAD[k]===v?' on':'')+'" data-cad="'+k+':'+v+'">'+t+'</button>';};
   abre('<h2>Enviar cadastro</h2><div class="sub">'+esc(atual.nome)+' · '+esc(nomeIm||'sem imóvel no lead')+'</div>'+
-    (atual.cad?'<div class="dica">Link com os valores da negociação lançada no CRM.</div>':'<div class="dica">Ainda sem negociação lançada: o cliente preenche sem os valores.</div>')+'<textarea id="msg">'+esc(msg)+'</textarea>'+
-    '<div class="dica">Confira a mensagem. Ao tocar no botão, o WhatsApp abre com ela pronta. É só enviar.</div>'+
+    (atual.cad?'<div class="dica">Link com os valores da negociação lançada no CRM.</div>':'<div class="dica">Ainda sem negociação lançada: o cliente preenche sem os valores.</div>')+
+    '<div class="rot">Garantia</div><div class="chips">'+ch('g','seguro','Seguro-fiança')+ch('g','fiador','Fiador')+'</div>'+
+    (CAD.g?'<div class="rot">Para quem é este link</div><div class="chips">'+ch('p','locatario','Cliente')+(CAD.g==='fiador'?ch('p','fiador','Fiador'):'')+ch('p','renda','Sócio ou compõe renda')+'</div>':'<div class="dica">Escolha a garantia. Ela define os documentos que o cliente vai mandar.</div>')+
+    '<div id="cadCorpo"></div>');
+  if(CAD.g) cadCorpo(nomeIm);
+}
+function cadLink(){
+  var im=atual.imoveis[0]||{c:'',n:''}, nomeIm=im.n||im.c||'';
+  var base=atual.cad?FORM_CAD+'?n='+encodeURIComponent(atual.cad):FORM_CAD+'?imovel='+encodeURIComponent(nomeIm)+'&corretor='+encodeURIComponent(D.corretor);
+  return base+'&g='+CAD.g+(CAD.p!=='locatario'?'&papel='+CAD.p:'');
+}
+function cadCorpo(nomeIm){
+  var link=cadLink(), cli=primeiro(atual.nome), imv=nomeIm?' do imóvel '+nomeIm:'';
+  var msg;
+  if(CAD.p==='fiador') msg='Olá! Aqui é o Carlos, da Avellar Imóveis. Você vai ser fiador(a) de '+atual.nome+' na locação'+imv+'. Preencha seu cadastro pelo celular neste link: '+link+'\nSe for casado(a), seu marido ou sua esposa também precisa preencher o próprio cadastro pelo mesmo link. A fiança só vale com o aceite dos dois.\nQualquer dúvida, estou à disposição.';
+  else if(CAD.p==='renda') msg='Olá! Aqui é o Carlos, da Avellar Imóveis. Para a locação'+imv+' de '+atual.nome+', preciso do seu cadastro, porque você vai compor a renda ou é sócio(a). Preencha pelo celular neste link: '+link+'\nQualquer dúvida, estou à disposição.';
+  else msg='Olá, '+cli+'! Aqui é o Carlos, da Avellar Imóveis. Para seguirmos com a locação'+imv+', preencha o cadastro pelo celular neste link: '+link+(CAD.g==='fiador'?'\nDepois mando o link para o seu fiador preencher o dele.':'')+'\nQualquer dúvida, estou à disposição.';
+  var wa=CAD.p==='locatario'?telWa(atual.tel):'';
+  $('cadCorpo').innerHTML='<textarea id="msg">'+esc(msg)+'</textarea>'+
+    '<div class="dica">'+(CAD.p==='locatario'?'Confira a mensagem. Ao tocar no botão, o WhatsApp abre com ela pronta. É só enviar.':'Ao tocar no botão, o WhatsApp abre para você escolher o contato.')+'</div>'+
     '<div class="linha"><button class="btn" id="cancelar">Cancelar</button>'+
-    (wa?'<a class="btn pri" id="enviarWa" href="#" target="_blank" rel="noopener">'+IC.wa+' Abrir WhatsApp</a>':'<button class="btn pri" id="copiar">Copiar mensagem</button>')+'</div>'+
-    (wa?'':'<div class="dica">Esse lead está sem telefone no CRM.</div>'));
-  if(wa){$('enviarWa').addEventListener('click',function(){
-    this.href='https://wa.me/'+wa+'?text='+encodeURIComponent($('msg').value);
-    var l=atual;
-    chama('registrarCadastro',window.K,l.id,link).then(function(r){l.ultimo={quando:r.quando,tipo:'CADASTRO ENVIADO',marca:'Link do cadastro',texto:'Cadastro enviado pelo WhatsApp.'};desenha();}).catch(function(){});
+    (wa||CAD.p!=='locatario'?'<a class="btn pri" id="enviarWa" href="#" target="_blank" rel="noopener">'+IC.wa+' Abrir WhatsApp</a>':'<button class="btn pri" id="copiar">Copiar mensagem</button>')+'</div>'+
+    (wa||CAD.p!=='locatario'?'<div class="linha"><button class="btn" id="copiar">Copiar mensagem</button></div>':'<div class="dica">Esse lead está sem telefone no CRM.</div>');
+  var bw=$('enviarWa');
+  if(bw) bw.addEventListener('click',function(){
+    this.href='https://wa.me/'+(wa||'')+'?text='+encodeURIComponent($('msg').value);
+    var l=atual, para=CAD.p==='fiador'?'fiador':CAD.p==='renda'?'sócio ou renda':'cliente';
+    chama('registrarCadastro',window.K,l.id,link+' (garantia: '+(CAD.g==='seguro'?'seguro-fiança':'fiador')+'; para: '+para+')').then(function(r){l.ultimo={quando:r.quando,tipo:'CADASTRO ENVIADO',marca:'Link do cadastro',texto:'Cadastro enviado pelo WhatsApp ('+para+').'};desenha();}).catch(function(){});
     setTimeout(fecha,300);
-  });}
+  });
 }
 
 document.addEventListener('click',function(e){
@@ -348,6 +368,7 @@ document.addEventListener('click',function(e){
     return;}
   if(t.dataset.f){filtro=t.dataset.f;$('busca').value='';desenha();window.scrollTo(0,0);}
   else if(t.dataset.r)gAtender(t.dataset.r);
+  else if(t.dataset.cad){var kv=t.dataset.cad.split(':');CAD[kv[0]]=kv[1];if(kv[0]==='g'&&kv[1]==='seguro'&&CAD.p==='fiador')CAD.p='locatario';abreCadastro(atual.id);}
   else if(t.dataset.c)abreCadastro(t.dataset.c);
   else if(t.dataset.m!==undefined){marca=marca===t.dataset.m?'':t.dataset.m;[].forEach.call(document.querySelectorAll('[data-m]'),function(c){c.classList.toggle('on',c.dataset.m===marca);});
     var s=SUGERE[marca];if(s&&document.querySelector('[data-e="'+s+'"]'))marcaEtapa(s);}
