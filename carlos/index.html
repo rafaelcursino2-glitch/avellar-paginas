@@ -90,6 +90,8 @@ body:not(.lista) .wrap{display:none}
 #guia .muted{color:var(--muted);font-size:17px}
 .g-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;border-radius:14px;border:2px solid var(--line);background:var(--bg);color:var(--fg);font:inherit;font-size:17px;font-weight:600;line-height:1.2;margin:0 0 8px;padding:8px 10px;text-decoration:none;cursor:pointer;text-align:center}
 .g-btn svg{width:22px;height:22px;flex:none}
+.g-btn.sel{background:#fde8eb;border-color:var(--accent)}.ck{width:18px;height:18px;border:2px solid var(--line);border-radius:5px;flex:none;background:#fff}.g-btn.sel .ck{background:var(--accent);border-color:var(--accent)}
+.g-com{width:100%;font:inherit;font-size:16px;min-height:56px;border:2px solid var(--line);border-radius:12px;padding:10px;margin:0 0 8px}
 .g-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 8px}.g-grid .g-btn{margin:0}
 .g-btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
 .g-btn.wa{background:#1f8f4e;border-color:#1f8f4e;color:#fff}
@@ -233,7 +235,7 @@ function cartao(l){
     '<div class="acoes">'+
       '<button class="btn pri" data-r="'+esc(l.id)+'">'+IC.fala+' Atualizar no sistema</button>'+
       (wa?'<a class="btn wa" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">'+IC.wa+' WhatsApp</a>':'')+
-      (querCad(l)?'<button class="btn" data-c="'+esc(l.id)+'">'+IC.doc+' Enviar cadastro</button>':'')+
+      
     '</div></div>';
 }
 
@@ -340,7 +342,7 @@ var OPCOES=[
 ];
 var MOTIVOS=[['Alugou ou comprou outro','Alugou ou comprou outro'],['Sem renda ou sem perfil','Sem perfil ou sem renda'],['Queria outro tipo de imóvel','Queria outra coisa'],['Outro motivo','Desistiu']];
 var PERG={interesse:['Qual o interesse do cliente?',[['Muito','c4'],['Médio','c5'],['Pouco','c1']]],
-  trava:['O que está travando?',[['Preço','c6'],['Localização','c2'],['Tamanho do imóvel','c3'],['Fiador ou documentos','c5'],['Ver com a família','c7'],['Nada, está tudo certo','c4']]],
+  trava:['O que está travando? Pode marcar mais de um.',[['Preço','c6'],['Estado de conservação','c5'],['Garantia','c3'],['Ver com a família','c7'],['Outro','c1'],['Nada, está tudo certo','c4']],true],
   passo:['Qual o próximo passo?',[['Ligar de novo','c2'],['Marcar visita','c3'],['Mandar outras opções','c5'],['Esperar o cliente','c1']]]};
 var ORDEM=['AG','PR','EA','VA','VR','NE'],PRIO={AG:0,NE:1,VR:2,VA:3,EA:4,PR:5};
 function gEl(){return document.getElementById('guia');}
@@ -367,7 +369,6 @@ function gCliente(){
     (wa?'<a class="g-btn wa" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">'+IC.wa+' Chamar no WhatsApp</a>':'')+
     '<div class="g-q">O que aconteceu?</div><div class="g-grid">'+
     opc.map(function(o){return '<button class="g-btn g-opc '+o.c+'" data-g="op" data-o="'+o.id+'">'+esc(o.t)+'</button>';}).join('')+'</div>'+
-    (querCad(l)?'<button class="g-btn" data-g="cad">'+IC.doc+' Mandar a ficha de cadastro para o cliente preencher</button>':'')+
     '<button class="g-btn pq" data-g="pular">'+(G.solo?'Voltar para a lista':'Deixar para depois')+'</button>';
   window.scrollTo(0,0);
 }
@@ -379,9 +380,12 @@ function gOpcao(id){
 }
 function gProx(){
   var o=G.op.o,p=(o.perg||[])[G.op.k];
-  if(p){var P=PERG[p];gEl().innerHTML=gTopo()+'<div class="g-pos">Pergunta '+(G.op.k+1)+' de '+o.perg.length+'</div><div class="g-q">'+esc(P[0])+'</div>'+
-    P[1].map(function(x,i){return '<button class="g-btn g-opc '+x[1]+'" data-g="resp" data-p="'+p+'" data-i="'+i+'">'+esc(x[0])+'</button>';}).join('')+
-    '<button class="g-btn pq" data-g="voltar">Voltar</button>';window.scrollTo(0,0);return;}
+  if(p){var P=PERG[p],multi=!!P[2],sel=multi?String(G.op.r[p]||'').split(', ').filter(Boolean):[];
+    gEl().innerHTML=gTopo()+'<div class="g-pos">Pergunta '+(G.op.k+1)+' de '+o.perg.length+'</div><div class="g-q">'+esc(P[0])+'</div><div class="g-grid">'+
+    P[1].map(function(x,i){return '<button class="g-btn g-opc '+x[1]+(sel.indexOf(x[0])>=0?' sel':'')+'" data-g="'+(multi?'marca':'resp')+'" data-p="'+p+'" data-i="'+i+'">'+(multi?'<span class="ck"></span>':'')+esc(x[0])+'</button>';}).join('')+'</div>'+
+    (multi?'<button class="g-btn ok" data-g="continuar" data-p="'+p+'">Continuar</button>':'')+
+    '<textarea id="g-com" class="g-com"'+(multi&&sel.indexOf('Outro')<0?' style="display:none"':'')+' placeholder="'+(multi?'Qual é o outro motivo? Escreva ou toque no microfone do teclado.':'Comentário (opcional). Toque no microfone do teclado para falar.')+'">'+esc(G.op.com||'')+'</textarea>'+
+    '<div class="g-grid"><button class="g-btn pq" data-g="voltar">Voltar</button><button class="g-btn pq" data-g="pularp">Pular</button></div>';window.scrollTo(0,0);return;}
   if(o.q)gPergunta(o.q,o.obrig);else gPergunta('Quer contar mais? Fale aqui.',false);
 }
 function gPergunta(q,obrig){
@@ -390,6 +394,7 @@ function gPergunta(q,obrig){
     (SR?'<button class="g-mic" id="gMic" data-g="mic" aria-label="Falar">'+IC.mic+'</button><div class="g-micT" id="gMicT">Toque no microfone e fale</div>':'<div class="g-micT">Toque no microfone do teclado para falar</div>')+
     '<textarea id="g-txt" placeholder="Ou escreva aqui"></textarea>'+
     '<button class="g-btn ok" data-g="salvar">Salvar</button>'+
+    (G.fila[G.i]&&querCad(G.fila[G.i])&&G.op.o.etapa!=='IN'?'<button class="g-btn wa" data-g="salvarcad">'+IC.doc+' Salvar e enviar cadastro</button>':'')+
     (obrig?'':'<button class="g-btn pq" data-g="semtexto">Salvar sem falar nada</button>')+
     '<button class="g-btn pq" data-g="voltar">Voltar</button>';
   G.obrig=!!obrig;
@@ -405,13 +410,15 @@ function gFalar(){
     gRec.start();gOuv=true;b.classList.add('ouvindo');t.textContent='Estou ouvindo… toque de novo para parar';
   }catch(e){b.style.display='none';t.textContent='Toque no microfone do teclado para falar';}
 }
-function gSalvar(texto){
+function gSalvar(texto,cad){
+  if(G.op&&G.op.com)texto=G.op.com+(texto?' | '+texto:'');
   if(gOuv&&gRec){try{gRec.stop();}catch(e){}}
   var l=G.fila[G.i],o=G.op.o,c=cod(l);
   var et=o.etapa&&(o.etapa==='IN'||o.etapa==='FE'||ORDEM.indexOf(o.etapa)>ORDEM.indexOf(c))?o.etapa:'';
   var b=document.querySelector('[data-g="salvar"]');if(b){b.disabled=true;b.textContent='Salvando…';}
   chama('salvarRetorno',window.K,l.id,texto,G.op.marca,et,G.op.r).then(function(r){
     l.ultimo={quando:r.quando,tipo:'RETORNO',marca:G.op.marca,texto:texto,lancado:'PENDENTE'};guarda(D);
+    if(cad){gLista();toast('Atualizado no sistema. Agora envie o cadastro.',4000);abreCadastro(l.id);return;}
     var s=document.getElementById('gSalvo');s.style.display='flex';
     setTimeout(function(){s.style.display='none';if(G.solo)gLista();else{G.i++;gCliente();}},1600);
   }).catch(function(e){if(b){b.disabled=false;b.textContent='Salvar';}toast('Não salvou. Tente de novo. ('+(e.message||e)+')',6000);});
@@ -419,14 +426,22 @@ function gSalvar(texto){
 function gFim(){gEl().innerHTML=gTopo()+'<h1>Pronto, Carlos!</h1><p>Você deu notícia de todos os clientes de hoje. Obrigado!</p><button class="g-btn pq" data-g="inicio">Voltar ao início</button><button class="g-btn pq" data-g="lista">Ver a lista completa</button>';}
 document.addEventListener('click',function(e){
   var t=e.target.closest('[data-g]');if(!t)return;var a=t.dataset.g;
+  var gc=document.getElementById('g-com');if(gc&&G.op)G.op.com=gc.value.trim();
   if(a==='comecar'){G.iniciado=true;gMontaFila();gCliente();}
   else if(a==='op')gOpcao(t.dataset.o);
   else if(a==='mot'){var m=MOTIVOS[+t.dataset.i];G.op.marca=m[1];gPergunta('Quer contar mais? Fale aqui.',false);}
   else if(a==='resp'){G.op.r[t.dataset.p]=PERG[t.dataset.p][1][+t.dataset.i][0];G.op.k++;gProx();}
+  else if(a==='marca'){var nm=PERG[t.dataset.p][1][+t.dataset.i][0],nada=/^Nada/.test(nm);
+    if(nada)[].forEach.call(document.querySelectorAll('[data-g=marca]'),function(b){if(b!==t)b.classList.remove('sel');});
+    else{var bn=[].filter.call(document.querySelectorAll('[data-g=marca]'),function(b){return /^Nada/.test(b.textContent);})[0];if(bn)bn.classList.remove('sel');}
+    t.classList.toggle('sel');
+    var on=[].some.call(document.querySelectorAll('[data-g=marca].sel'),function(b){return b.textContent==='Outro';}),gc2=document.getElementById('g-com');if(gc2){gc2.style.display=on?'':'none';if(on&&nm==='Outro')gc2.focus();}}
+  else if(a==='continuar'){G.op.r[t.dataset.p]=[].filter.call(document.querySelectorAll('[data-g=marca].sel'),function(b){return 1;}).map(function(b){return b.textContent;}).join(', ');G.op.k++;gProx();}
+  else if(a==='pularp'){G.op.k++;gProx();}
   else if(a==='mic')gFalar();
-  else if(a==='salvar'){var v=(document.getElementById('g-txt').value||'').trim();if(G.obrig&&!v){toast('Fale ou escreva a resposta antes de salvar.',4000);return;}gSalvar(v);}
+  else if(a==='salvar'||a==='salvarcad'){var v=(document.getElementById('g-txt').value||'').trim();if(G.obrig&&!v){toast('Fale ou escreva a resposta antes de salvar.',4000);return;}gSalvar(v,a==='salvarcad');}
   else if(a==='semtexto')gSalvar('');
-  else if(a==='voltar')gCliente();
+  else if(a==='voltar'){if(G.op&&G.op.o&&G.op.o.perg&&G.op.k>0){G.op.k--;gProx();}else gCliente();}
   else if(a==='pular'){if(G.solo)gLista();else{G.i++;gCliente();}}
   else if(a==='cad')abreCadastro(G.fila[G.i].id);
   else if(a==='lista'){document.body.classList.add('lista');desenha();window.scrollTo(0,0);}
