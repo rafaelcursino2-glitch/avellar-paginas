@@ -175,7 +175,8 @@ var FICHAS={},pedindoF=false;
 function fichaDe(l){var i=l.imoveis[0];return i?FICHAS[i.c]:null;}
 function msgNovo(l){
   var i=l.imoveis[0]||{},f=fichaDe(l)||{},d='';
-  if(f.tipo||i.n){d=' Vi que você se interessou pelo '+(f.tipo?f.tipo.toLowerCase():'imóvel')+(i.n?' '+i.n:'')+(f.rua?', na '+f.rua:'')+(f.bairro?', em '+f.bairro:'')+
+  if(f.tipo||i.n){var tp=f.tipo?f.tipo.toLowerCase():'imóvel',art=/^(loja|casa|sala|cobertura|kitnet|quitinete|garagem|área|chácara|granja|vaga)/.test(tp)?'pela ':'pelo ',nm=i.n||'',rep=nm&&nm.toLowerCase().indexOf(tp)===0;
+    d=' Vi que você se interessou '+art+(rep?nm:tp+(nm?' '+nm:''))+(f.rua?', na '+f.rua:'')+(f.bairro?', em '+f.bairro:'')+
     (f.valor?(f.neg==='Alugar'?', para alugar por ':', à venda por ')+f.valor:'')+'.';}
   return 'Olá, '+primeiro(l.nome)+'! Tudo bem?\nAqui é o Carlos, da Avellar Imóveis.'+d+(f.link?'\nVeja as fotos e detalhes: '+f.link:'')+'\nQuer marcar uma visita? Qual o melhor dia e horário para você?';
 }
