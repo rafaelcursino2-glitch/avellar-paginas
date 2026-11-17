@@ -117,10 +117,14 @@ function dias(iso){return Math.floor((Date.now()-new Date(iso).getTime())/864e5)
 function dataBR(iso){var d=new Date(iso);return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);}
 function horaBR(iso){var d=new Date(iso);return ('0'+d.getHours()).slice(-2)+'h'+('0'+d.getMinutes()).slice(-2);}
 function nomeImovel(l){if(!l.imoveis.length)return'<span>sem imóvel no lead</span>';return l.imoveis.map(function(i){return i.n?esc(i.n)+' <span>· '+esc(i.c)+'</span>':esc(i.c)+' <span>· nome a conferir</span>';}).join('<br>');}
-function ultimoMov(l){var a=l.atualizado;if(l.ultimo&&l.ultimo.quando>a)a=l.ultimo.quando;return a;}
+// Andamento = último retorno do Carlos. A data de alteração do CRM não serve: muda quando o sistema ou os agentes gravam.
+function temRet(l){return !!(l.ultimo&&l.ultimo.quando&&!/ignorar|teste/i.test(l.ultimo.lancado||''));}
+function ultimoMov(l){return temRet(l)?l.ultimo.quando:l.criado;}
 function parado(l){return dias(ultimoMov(l));}
 function cod(l){return ETAPA[l.status]||'';}
-function precisa(l){var c=cod(l);if(c==='AG')return true;if(c==='VA'||c==='VR')return parado(l)>=2;return parado(l)>=3;}
+function precisa(l){var c=cod(l);if(c==='AG')return true;
+  if(!temRet(l))return c==='PR'?parado(l)>=3:true;
+  if(c==='VA'||c==='VR')return parado(l)>=2;return parado(l)>=3;}
 function primeiro(n){n=String(n||'').trim().split(/\s+/)[0]||'';return n?n.charAt(0).toUpperCase()+n.slice(1).toLowerCase():'cliente';}
 function telWa(t){t=String(t||'').replace(/\D/g,'');if(!t)return'';if(t.length<=11)t='55'+t;return t;}
 
@@ -171,8 +175,9 @@ function cartao(l){
   var p=parado(l),c=cod(l),cls=c==='AG'||p>7?'alerta':(p>=3?'leve':'');
   var meta='Entrou '+dataBR(l.criado)+' · ';
   if(c==='AG')meta+='<span class="q">sem primeiro contato</span>';
-  else if(p===0)meta+='mexido hoje';
-  else meta+='<span class="'+(p>7?'q':p>=3?'m':'')+'">sem andamento há '+p+(p===1?' dia':' dias')+'</span>';
+  else if(p===0&&temRet(l))meta+='retorno dado hoje';
+  else if(!temRet(l))meta+='<span class="'+(p>7?'q':'m')+'">ainda sem retorno do corretor</span>';
+  else meta+='<span class="'+(p>7?'q':p>=3?'m':'')+'">último retorno há '+p+(p===1?' dia':' dias')+'</span>';
   var ult='';
   if(l.ultimo){ult='<div class="ult"><small>Seu último retorno · '+dataBR(l.ultimo.quando)+(l.ultimo.marca?' · '+esc(l.ultimo.marca):'')+'</small>'+esc(l.ultimo.texto||'')+'</div>';}
   var wa=telWa(l.tel);
