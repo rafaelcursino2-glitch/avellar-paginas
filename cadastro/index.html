@@ -665,7 +665,11 @@ function send(){
     bNext.textContent="Tentar de novo"; bBack.style.visibility="visible";
   });
 }
+var ZAP_CORRETOR={ CARLOS:{ nome:"Carlos", tel:"5581994829623" } };
 function finish(prot, missing){
+  var zc=ZAP_CORRETOR[String(S.meta.corretor||"").toUpperCase()];
+  var quem=isPF()?get("pf.nome"):get("pj.razao");
+  var zmsg=zc?"Olá, "+zc.nome+"! Enviei meu cadastro pelo formulário da Avellar."+(quem?"\nNome: "+quem:"")+(S.meta.imovel?"\nImóvel: "+S.meta.imovel:"")+"\nProtocolo: "+prot+(missing.length?"\nAinda vou mandar: "+missing.join("; "):""):"";
   var cjf=(isFiador()&&casado())?get("pf.cjf.nome"):"";
   var outros=(get("pf.tem_solid")==="Sim"&&isPF()?(get("solid")||[]):isPF()?[]:(get("socios")||[])).map(function(o){return o&&o.nome;}).filter(Boolean);
   clearDraft();
@@ -674,7 +678,8 @@ function finish(prot, missing){
     '<div class="card"><div class="sum-row"><span>Protocolo</span><b>'+esc(prot)+'</b></div></div>'+
     (missing.length?'<div class="note">Ainda falta mandar ao corretor: '+missing.map(esc).join("; ")+'.</div>':"")+
     (cjf?'<div class="note">Falta o cadastro do seu cônjuge, '+esc(cjf)+'. O corretor vai mandar o link para ele ou ela preencher como fiador.</div>':"")+
-    (outros.length?'<div class="note">O corretor vai mandar um link para cada pessoa preencher o próprio cadastro: '+outros.map(esc).join("; ")+'.</div>':"");
+    (outros.length?'<div class="note">O corretor vai mandar um link para cada pessoa preencher o próprio cadastro: '+outros.map(esc).join("; ")+'.</div>':"")+
+    (zc?'<p class="lead center" style="margin-top:18px">Avise o '+esc(zc.nome)+' que você enviou:</p><a class="btn pri" style="display:flex;width:100%;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/'+zc.tel+'?text='+encodeURIComponent(zmsg)+'">Avisar o '+esc(zc.nome)+' no WhatsApp</a>':"");
   S={step:0,meta:{},v:{},files:{},attempted:{},sent:true};
 }
 
