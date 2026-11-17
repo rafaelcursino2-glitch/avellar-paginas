@@ -33,6 +33,7 @@ button{font:inherit;cursor:pointer}
 .tab i{display:block;font-style:normal;font-size:12px;font-weight:600;color:var(--bad);line-height:1.1}.tab i.ok{color:var(--ok)}.tab.on i{color:#fff}
 .sec{font-size:14px;font-weight:700;margin:6px 0 8px;padding:6px 10px;border-radius:10px}.sec.prec{background:var(--badbg);color:var(--bad)}.sec.dia{background:var(--okbg);color:var(--ok)}
 .card.emdia{border-left:5px solid var(--ok)}
+.btn.wa.unico{flex:1 1 100%;min-height:52px;font-size:17px}
 .tab.on{background:var(--accent);border-color:var(--accent);color:var(--accentfg)}
 .busca{width:100%;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 12px;outline:none;background:var(--bg);color:var(--fg)}
 .busca:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(196,22,58,.2)}
@@ -165,9 +166,15 @@ function temRet(l){return !!(l.ultimo&&l.ultimo.quando&&!/ignorar|teste/i.test(l
 function ultimoMov(l){return temRet(l)?l.ultimo.quando:l.criado;}
 function parado(l){return dias(ultimoMov(l));}
 function cod(l){return ETAPA[l.status]||'';}
-function precisa(l){var c=cod(l);if(c==='AG')return true;
-  if(!temRet(l))return c==='PR'?parado(l)>=3:true;
-  if(c==='VA'||c==='VR')return parado(l)>=2;return parado(l)>=3;}
+// Regras do Rafael (17/11): Novos = até o primeiro contato. Pré-atendimento = por turno
+// (contato de manhã volta ao vermelho às 13h30; contato à tarde volta às 8h do dia seguinte).
+// Demais etapas = diário (quem não foi atualizado hoje fica vermelho no dia seguinte).
+function vence(iso,c){var t=new Date(iso),v=new Date(t);
+  if(c==='PR'){if(t.getHours()<12){v.setHours(13,30,0,0);}else{v.setDate(v.getDate()+1);v.setHours(8,0,0,0);}}
+  else{v.setDate(v.getDate()+1);v.setHours(0,0,0,0);}
+  return v;}
+function precisa(l){var c=cod(l);if(c==='AG')return !temRet(l);
+  return new Date()>=vence(ultimoMov(l),c);}
 // Ficha de cadastro: aluguel a partir de Em atendimento (cliente pode querer aprovar antes de visitar).
 function querCad(l){var c=cod(l);return !!l.cad||(l.negocio==='Locação'&&['EA','VA','VR','NE'].indexOf(c)>=0);}
 /* Mensagem pronta do WhatsApp para Novos e Pré-atendimento. Dados do imóvel vêm do site da Avellar (alimentado pelo CRM); se faltar algo, a parte some. */
@@ -242,7 +249,7 @@ function desenha(){
 function cartao(l){
   var p=parado(l),c=cod(l),cls=precisa(l)?'alerta':'emdia';
   var meta='Entrou '+dataBR(l.criado)+' · ';
-  if(c==='AG')meta+='<span class="q">sem primeiro contato</span>';
+  if(c==='AG')meta+=temRet(l)?'primeiro contato feito '+dataBR(l.ultimo.quando)+' '+horaBR(l.ultimo.quando):'<span class="q">sem primeiro contato</span>';
   else if(p===0&&temRet(l))meta+='atualizado hoje';
   else if(!temRet(l))meta+='<span class="'+(p>7?'q':'m')+'">ainda não atualizado</span>';
   else meta+='<span class="'+(p>7?'q':p>=3?'m':'')+'">última atualização há '+p+(p===1?' dia':' dias')+'</span>';
@@ -254,8 +261,8 @@ function cartao(l){
     '<div class="imovel">'+nomeImovel(l)+'</div>'+
     '<div class="meta">'+meta+(l.negocio?' · '+esc(l.negocio):'')+'</div>'+ult+
     '<div class="acoes">'+
-      '<button class="btn pri" data-r="'+esc(l.id)+'">'+IC.fala+' Atualizar no sistema</button>'+
-      (wa?'<a class="btn wa" href="'+waHref(l)+'" target="_blank" rel="noopener">'+IC.wa+' WhatsApp</a>':'')+
+      (c==='AG'&&wa?'':'<button class="btn pri" data-r="'+esc(l.id)+'">'+IC.fala+' Atualizar no sistema</button>')+
+      (wa?'<a class="btn wa'+(c==='AG'?' unico':'')+'" href="'+waHref(l)+'" target="_blank" rel="noopener"'+(c==='AG'?' data-pc="'+esc(l.id)+'"':'')+'>'+IC.wa+(c==='AG'?' Chamar no WhatsApp':' WhatsApp')+'</a>':'')+
       
     '</div></div>';
 }
@@ -335,6 +342,10 @@ function abreCadastro(id){
 
 document.addEventListener('click',function(e){
   var t=e.target.closest('button,a');if(!t)return;
+  if(t.dataset.pc){var lp=D.leads.filter(function(x){return String(x.id)===t.dataset.pc;})[0];
+    if(lp&&!temRet(lp))chama('salvarRetorno',window.K,lp.id,'Primeiro contato enviado pelo WhatsApp com a mensagem pronta.','Primeiro contato pelo WhatsApp','PR',null)
+      .then(function(r){lp.ultimo={quando:r.quando,tipo:'RETORNO',marca:'Primeiro contato pelo WhatsApp',texto:'Primeiro contato enviado pelo WhatsApp.',lancado:'PENDENTE'};guarda(D);setTimeout(desenha,800);}).catch(function(){});
+    return;}
   if(t.dataset.f){filtro=t.dataset.f;$('busca').value='';desenha();window.scrollTo(0,0);}
   else if(t.dataset.r)gAtender(t.dataset.r);
   else if(t.dataset.c)abreCadastro(t.dataset.c);
