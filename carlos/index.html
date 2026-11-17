@@ -450,6 +450,20 @@ document.addEventListener('click',function(e){
 });
 
 document.body.classList.add('lista');
+/* Atualiza sozinha a cada minuto, só com a lista na tela (não mexe se o Carlos estiver atualizando um cliente). */
+var auto=false;
+setInterval(function(){
+  var B=document.body;
+  if(auto||document.hidden||!D||!B.classList.contains('lista')||B.classList.contains('aberta'))return;
+  auto=true;
+  chama('carregar',window.K,true).then(function(d){
+    var antes={};D.leads.forEach(function(l){antes[l.id]=l.status;});
+    var mudou=d.leads.length!==D.leads.length||d.leads.some(function(l){return antes[l.id]!==l.status;});
+    var novos=d.leads.filter(function(l){return !(l.id in antes);}).length;
+    $('hora').textContent='Atualizado às '+horaBR(d.agora);
+    if(mudou&&B.classList.contains('lista')&&!B.classList.contains('aberta')){D=d;guarda(d);desenha();if(novos)toast(novos===1?'Chegou 1 cliente novo.':'Chegaram '+novos+' clientes novos.',5000);}
+  }).catch(function(){}).then(function(){auto=false;});
+},60000);
 carregar();
 </script>
 </body>
