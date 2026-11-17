@@ -215,18 +215,18 @@ function cartao(l){
   var p=parado(l),c=cod(l),cls=c==='AG'||p>7?'alerta':(p>=3?'leve':'');
   var meta='Entrou '+dataBR(l.criado)+' · ';
   if(c==='AG')meta+='<span class="q">sem primeiro contato</span>';
-  else if(p===0&&temRet(l))meta+='retorno dado hoje';
-  else if(!temRet(l))meta+='<span class="'+(p>7?'q':'m')+'">ainda sem retorno do corretor</span>';
-  else meta+='<span class="'+(p>7?'q':p>=3?'m':'')+'">último retorno há '+p+(p===1?' dia':' dias')+'</span>';
+  else if(p===0&&temRet(l))meta+='atualizado hoje';
+  else if(!temRet(l))meta+='<span class="'+(p>7?'q':'m')+'">ainda não atualizado</span>';
+  else meta+='<span class="'+(p>7?'q':p>=3?'m':'')+'">última atualização há '+p+(p===1?' dia':' dias')+'</span>';
   var ult='';
-  if(l.ultimo){ult='<div class="ult"><small>Seu último retorno · '+dataBR(l.ultimo.quando)+(l.ultimo.marca?' · '+esc(l.ultimo.marca):'')+'</small>'+esc(l.ultimo.texto||'')+'</div>';}
+  if(l.ultimo){ult='<div class="ult"><small>Sua última atualização · '+dataBR(l.ultimo.quando)+(l.ultimo.marca?' · '+esc(l.ultimo.marca):'')+'</small>'+esc(l.ultimo.texto||'')+'</div>';}
   var wa=telWa(l.tel);
   return '<div class="card '+cls+'">'+
     '<div class="l1"><div class="nome">'+esc(l.nome||'Sem nome')+'</div><div class="etapa '+c+'">'+esc(l.status)+'</div></div>'+
     '<div class="imovel">'+nomeImovel(l)+'</div>'+
     '<div class="meta">'+meta+(l.negocio?' · '+esc(l.negocio):'')+'</div>'+ult+
     '<div class="acoes">'+
-      '<button class="btn pri" data-r="'+esc(l.id)+'">'+IC.fala+' Dar retorno</button>'+
+      '<button class="btn pri" data-r="'+esc(l.id)+'">'+IC.fala+' Atualizar no sistema</button>'+
       (wa?'<a class="btn wa" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">'+IC.wa+' WhatsApp</a>':'')+
       (querCad(l)?'<button class="btn" data-c="'+esc(l.id)+'">'+IC.doc+' Enviar cadastro</button>':'')+
     '</div></div>';
@@ -358,7 +358,7 @@ function gCliente(){
   var opc=OPCOES.filter(function(o){if(o.so&&o.so.indexOf(c)<0)return false;if(o.etapa&&o.etapa!=='IN'&&o.etapa!=='FE'&&ORDEM.indexOf(o.etapa)<=ORDEM.indexOf(c)&&o.id!=='int'&&o.id!=='vtu')return false;return true;});
   gEl().innerHTML=gTopo()+(G.solo?'':'<div class="g-pos">Cliente '+(G.i+1)+' de '+G.fila.length+'</div>')+
     '<div class="g-cli"><div class="n">'+esc(l.nome||'Sem nome')+'</div><div class="i">'+(im?esc(im.n||im.c):'Sem imóvel')+'</div><div class="s">'+esc(SITUACAO[c]||l.status)+'</div>'+
-    (temRet(l)?'<div class="u">Sua última notícia: '+esc(l.ultimo.texto||l.ultimo.marca||'')+'</div>':'')+'</div>'+
+    (temRet(l)?'<div class="u">Sua última atualização: '+esc(l.ultimo.texto||l.ultimo.marca||'')+'</div>':'')+'</div>'+
     (wa?'<a class="g-btn wa" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">'+IC.wa+' Chamar no WhatsApp</a>':'')+
     '<div class="g-q">O que aconteceu?</div><div class="g-grid">'+
     opc.map(function(o){return '<button class="g-btn g-opc '+o.c+'" data-g="op" data-o="'+o.id+'">'+esc(o.t)+'</button>';}).join('')+'</div>'+
