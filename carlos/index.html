@@ -162,6 +162,8 @@ function cod(l){return ETAPA[l.status]||'';}
 function precisa(l){var c=cod(l);if(c==='AG')return true;
   if(!temRet(l))return c==='PR'?parado(l)>=3:true;
   if(c==='VA'||c==='VR')return parado(l)>=2;return parado(l)>=3;}
+// Ficha de cadastro só quando o cliente de aluguel já visitou ou está em negociação.
+function querCad(l){var c=cod(l);return !!l.cad||(l.negocio==='Locação'&&(c==='VR'||c==='NE'));}
 function primeiro(n){n=String(n||'').trim().split(/\s+/)[0]||'';return n?n.charAt(0).toUpperCase()+n.slice(1).toLowerCase():'cliente';}
 function telWa(t){t=String(t||'').replace(/\D/g,'');if(!t)return'';if(t.length<=11)t='55'+t;return t;}
 
@@ -225,7 +227,7 @@ function cartao(l){
     '<div class="acoes">'+
       '<button class="btn pri" data-r="'+esc(l.id)+'">'+IC.fala+' Dar retorno</button>'+
       (wa?'<a class="btn wa" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">'+IC.wa+' WhatsApp</a>':'')+
-      (l.cad||l.negocio==='Locação'?'<button class="btn" data-c="'+esc(l.id)+'">'+IC.doc+' Enviar cadastro</button>':'')+
+      (querCad(l)?'<button class="btn" data-c="'+esc(l.id)+'">'+IC.doc+' Enviar cadastro</button>':'')+
     '</div></div>';
 }
 
@@ -359,7 +361,7 @@ function gCliente(){
     (wa?'<a class="g-btn wa" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">'+IC.wa+' Chamar no WhatsApp</a>':'')+
     '<div class="g-q">O que aconteceu?</div>'+
     opc.map(function(o){return '<button class="g-btn g-opc '+o.c+'" data-g="op" data-o="'+o.id+'">'+esc(o.t)+'</button>';}).join('')+
-    (l.cad||l.negocio==='Locação'?'<button class="g-btn" data-g="cad">'+IC.doc+' Mandar a ficha de cadastro</button>':'')+
+    (querCad(l)?'<button class="g-btn" data-g="cad">'+IC.doc+' Mandar a ficha de cadastro para o cliente preencher</button>':'')+
     '<button class="g-btn pq" data-g="pular">'+(G.solo?'Voltar para a lista':'Deixar para depois')+'</button>';
   window.scrollTo(0,0);
 }
