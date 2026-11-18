@@ -112,6 +112,7 @@ body:not(.lista) .wrap{display:none}
 .g-mic svg{width:40px;height:40px}
 .g-mic.ouvindo{background:#f05a22;animation:pulsa 1.2s infinite}
 .g-micT{text-align:center;font-size:18px;color:var(--muted);margin-bottom:12px}
+#g-valor{width:100%;font:inherit;font-size:22px;border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin:0 0 14px}
 #g-txt{width:100%;font:inherit;font-size:18px;min-height:90px;border:2px solid var(--line);border-radius:16px;padding:14px;margin:0 0 14px}
 .g-salvo{position:fixed;inset:0;background:#1e7a3a;color:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;z-index:30;font-family:var(--display);font-size:40px;font-weight:700;text-align:center;padding:20px}
 .g-salvo svg{width:120px;height:120px;margin-bottom:10px}
@@ -454,9 +455,10 @@ function gPergunta(q,obrig){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   gEl().innerHTML=gTopo()+'<div class="g-q">'+esc(q)+'</div>'+
     (SR?'<button class="g-mic" id="gMic" data-g="mic" aria-label="Falar">'+IC.mic+'</button><div class="g-micT" id="gMicT">Toque no microfone e fale</div>':'<div class="g-micT">Toque no microfone do teclado para falar</div>')+
+    (G.op&&G.op.o.id==='pro'?'<div class="g-q" style="font-size:18px;margin-bottom:6px">Valor combinado (R$)</div><input id="g-valor" inputmode="decimal" placeholder="Ex.: 1375">':'')+
     '<textarea id="g-txt" placeholder="Ou escreva aqui"></textarea>'+
     '<button class="g-btn ok" data-g="salvar">Salvar</button>'+
-    (G.fila[G.i]&&querCad(G.fila[G.i])&&G.op.o.etapa!=='IN'?'<button class="g-btn wa" data-g="salvarcad">'+IC.doc+' Salvar e enviar cadastro</button>':'')+
+    (G.fila[G.i]&&querCad(G.fila[G.i])&&G.op.o.etapa!=='IN'&&(G.op.o.id!=='pro'||G.fila[G.i].cad)?'<button class="g-btn wa" data-g="salvarcad">'+IC.doc+' Salvar e enviar cadastro</button>':'')+
     (obrig?'':'<button class="g-btn pq" data-g="semtexto">Salvar sem falar nada</button>')+
     '<button class="g-btn pq" data-g="voltar">Voltar</button>';
   G.obrig=!!obrig;
@@ -485,6 +487,7 @@ function gSalvar(texto,cad){
     setTimeout(function(){s.style.display='none';if(G.solo)gLista();else{G.i++;gCliente();}},1600);
   }).catch(function(e){if(b){b.disabled=false;b.textContent='Salvar';}toast('Não salvou. Tente de novo. ('+(e.message||e)+')',6000);});
 }
+function valorNum(x){x=String(x||'').replace(/[^\d,\.]/g,'');if(/,\d{1,2}$/.test(x))x=x.replace(/\./g,'').replace(',','.');else x=x.replace(/[.,]/g,'');var n=parseFloat(x);return n>0?n:0;}
 function gFim(){gEl().innerHTML=gTopo()+'<h1>Pronto, Carlos!</h1><p>Você deu notícia de todos os clientes de hoje. Obrigado!</p><button class="g-btn pq" data-g="inicio">Voltar ao início</button><button class="g-btn pq" data-g="lista">Ver a lista completa</button>';}
 document.addEventListener('click',function(e){
   var t=e.target.closest('[data-g]');if(!t)return;var a=t.dataset.g;
@@ -501,7 +504,10 @@ document.addEventListener('click',function(e){
   else if(a==='continuar'){G.op.r[t.dataset.p]=[].filter.call(document.querySelectorAll('[data-g=marca].sel'),function(b){return 1;}).map(function(b){return b.textContent;}).join(', ');G.op.k++;gProx();}
   else if(a==='pularp'){G.op.k++;gProx();}
   else if(a==='mic')gFalar();
-  else if(a==='salvar'||a==='salvarcad'){var v=(document.getElementById('g-txt').value||'').trim();if(G.obrig&&!v){toast('Fale ou escreva a resposta antes de salvar.',4000);return;}gSalvar(v,a==='salvarcad');}
+  else if(a==='salvar'||a==='salvarcad'){var v=(document.getElementById('g-txt').value||'').trim(),gv=document.getElementById('g-valor');
+    if(gv){var n=valorNum(gv.value);if(!n){toast('Escreva o valor combinado. Exemplo: 1375',4000);gv.focus();return;}v='Valor combinado: R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+(v?'. '+v:'');}
+    else if(G.obrig&&!v){toast('Fale ou escreva a resposta antes de salvar.',4000);return;}
+    var pro=!!gv&&a==='salvar';gSalvar(v,a==='salvarcad');if(pro)setTimeout(function(){toast('O cadastro deste cliente fica pronto em até 10 minutos.',5000);},1700);}
   else if(a==='semtexto')gSalvar('');
   else if(a==='voltar'){if(G.op&&G.op.o&&G.op.o.perg&&G.op.k>0){G.op.k--;gProx();}else gCliente();}
   else if(a==='pular'){if(G.solo)gLista();else{G.i++;gCliente();}}
