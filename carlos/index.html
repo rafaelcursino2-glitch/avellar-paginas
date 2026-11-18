@@ -206,6 +206,8 @@ function chama(fn){var a=[].slice.call(arguments,1),p;
   else if(fn==='salvarRetorno')p={acao:'salvar',k:a[0],lead:a[1],texto:a[2],marca:a[3],etapa:a[4],r:a[5]||null};
   else if(fn==='fichas')p={acao:'fichas',k:a[0],codigos:a[1]};
   else p={acao:'cadastro',k:a[0],lead:a[1],link:a[2]};
+  if(p.lead){var lx=D&&D.leads?D.leads.filter(function(x){return String(x.id)===String(p.lead);})[0]:null;
+    if(lx)p.info={n:String(lx.nome||'').split(' ')[0],i:(lx.imoveis||[]).map(function(i){return i.n?i.n+' ('+i.c+')':i.c;}).join('; '),s:lx.status||''};}
   if(!p.k)return Promise.reject(new Error('Abra pelo link do Carlos.'));
   return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)})
     .then(function(r){return r.json();}).then(function(j){if(!j.ok)throw new Error(j.erro||'Erro');return j.dados;});}
