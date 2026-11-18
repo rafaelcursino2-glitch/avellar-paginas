@@ -75,6 +75,7 @@ textarea{min-height:84px;resize:vertical}
 .doc label.add{align-self:flex-start}
 .doc input[type=file]{display:none}
 .ok{color:var(--ok)} .warn{color:var(--warn)} .muted{color:var(--muted)}
+.alerta{font-size:14px;line-height:1.45;color:#7a2a00;background:#fff4e5;border:2px solid var(--brand2);border-radius:12px;padding:12px 14px;margin:12px 0 0;font-weight:600}
 .note{font-size:13.5px;color:var(--muted);background:var(--panel2);border-radius:12px;padding:12px 14px;margin:0 0 14px}
 .list{margin:0;padding-left:20px} .list li{margin:4px 0}
 .sum-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
@@ -358,6 +359,8 @@ function DOCS(){
   return d;
 }
 
+var AVISO_VALORES="Os valores de condomínio, IPTU, taxas e demais encargos são os últimos conhecidos, e podem variar a qualquer momento, sem aviso prévio.";
+function temValores(){ return !!(NEG && (NEG.valores||[]).length); }
 var NEG_STEP={ id:"imovel", title:"Imóvel e valores", lead:"Valores combinados com o corretor. Eles não podem ser mudados aqui.", locked:true, items:[] };
 function steps(){ var all = isPF()?STEPS_PF:STEPS_PJ; return all.filter(function(s){ return !s.when || s.when(); }).map(function(s){ return (NEG && s.id==="imovel") ? NEG_STEP : s; }); }
 
@@ -426,10 +429,13 @@ function imovelBox(){
 }
 function negBox(){
   if(!NEG) return "";
-  var h='<div class="card"><div class="muted" style="font-size:13px">Imóvel</div><div style="font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:4px">'+esc(NEG.imovel_nome)+'</div>'+(NEG.endereco?'<div class="muted" style="font-size:14px;margin-bottom:8px">'+esc(NEG.endereco)+'</div>':"");
+  var h='<div class="card"><div class="muted" style="font-size:13px">Imóvel</div><div style="font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:4px">'+esc(NEG.imovel_nome)+'</div>'+(NEG.endereco?'<div class="muted" style="font-size:14px;margin-bottom:8px">'+esc(NEG.endereco)+(NEG.cep?' · CEP '+esc(NEG.cep):'')+'</div>':"");
+  if(NEG.finalidade) h+='<div class="sum-row"><span>Locação</span><b>'+esc(NEG.finalidade)+'</b></div>';
   (NEG.valores||[]).forEach(function(l){ h+='<div class="sum-row"><span>'+esc(l[0])+'</span><b>'+esc(l[1])+'</b></div>'; });
   if(garantiaTxt()) h+='<div class="sum-row"><span>Garantia</span><b>'+garantiaTxt()+'</b></div>';
+  if(NEG.data_referencia) h+='<div class="muted" style="font-size:13px;margin-top:6px">Valores de referência em '+esc(NEG.data_referencia)+'.</div>';
   if(NEG.observacoes) h+='<div class="note" style="margin:10px 0 0">'+esc(NEG.observacoes)+'</div>';
+  if((NEG.valores||[]).length) h+='<div class="alerta">'+esc(AVISO_VALORES)+'</div>';
   return h+'</div>';
 }
 
@@ -583,6 +589,7 @@ function finalHTML(){
      (isSeguro()&&!isFiador()?'<li>Garantia: seguro-fiança, sujeito à aprovação da seguradora.</li></ul></div>':
      '<li>O locatário apresenta fiador com imóvel próprio, ou outra garantia aprovada pelo proprietário ou pela imobiliária.</li>'+
      '<li>O imóvel do fiador deve ficar na Região Metropolitana do Recife, registrado em cartório e livre de dívida. Se o fiador for casado, os dois preenchem o cadastro e dão o aceite.</li></ul></div>')+
+     (temValores()?'<h2>Valores do imóvel</h2>'+negBox()+'<div class="card"><div class="fld full" data-path="__avisoval"><label class="consent"><input type="checkbox" id="avisoval"'+(S.meta.aviso_valores?" checked":"")+'><span><b>Li o aviso sobre os valores.</b></span></label><div class="err">Marque para poder enviar</div></div></div>':'')+
      '<h2>Termos</h2>'+
      '<div class="card"><h3 style="margin:0 0 8px">Aviso de Privacidade e Proteção de Dados Pessoais (LGPD)</h3>'+AVISO.map(function(x){return '<p style="font-size:14px;margin:0 0 8px"><b>'+esc(x[0])+':</b> '+esc(x[1])+'</p>';}).join('')+'</div>'+
      '<div class="card"><h3 style="margin:0 0 8px">Declaração de Veracidade e Autorização de Consulta Cadastral</h3>'+DECLARACAO.map(function(x){return '<p style="font-size:14px;margin:0 0 8px">'+esc(x)+'</p>';}).join('')+'</div>'+
@@ -631,6 +638,7 @@ function buildSummary(){
     contato: isPF()? (get("pf.celular")+" · "+get("pf.email")) : (get("pj.telefone")+" · "+get("pj.email")),
     secoes:secs, termos_versao:TERMOS_VERSAO, aviso:AVISO, declaracao:DECLARACAO, dispositivo:(navigator.userAgent||'').slice(0,200), assinatura:S.meta.assinatura||"",
     aceite:{ nome:S.meta.assinatura||"", cpf:String(S.meta.aceite_cpf||"").replace(/\D/g,""), ip:IP, versao:TERMOS_VERSAO, marcadoEm:new Date().toISOString(), texto:"Li e concordo com os termos acima." },
+    aviso_valores: temValores()?{ marcou:!!S.meta.aviso_valores, texto:AVISO_VALORES, marcadoEm:new Date().toISOString() }:null,
     respostas:S.v, meta:S.meta, preenchidoEm:new Date().toISOString()
   };
 }
@@ -701,6 +709,7 @@ app.addEventListener("change",function(e){
   var t=e.target;
   if(t.dataset.meta && t.type==="radio"){ S.meta[t.dataset.meta]=t.value; if(S.meta.papel==="renda") S.meta.tipo="pf"; save(); if(S.step===0) renderStart(); return; }
   if(t.id==="consent"){ S.meta.consent=t.checked; save(); return; }
+  if(t.id==="avisoval"){ S.meta.aviso_valores=t.checked; save(); return; }
   if(t.type==="radio" && t.dataset.k){ set(t.dataset.k,t.value); save(); var y=window.scrollY; render(); window.scrollTo(0,y); return; }
   if(t.tagName==="SELECT" && t.dataset.k){ set(t.dataset.k,t.value); save(); return; }
   if(t.type==="file"){
@@ -752,9 +761,12 @@ bNext.addEventListener("click",function(){
     var c=document.getElementById("consent"), a=document.getElementById("assin");
     var fc=app.querySelector('[data-path="__consent"]'), fa=app.querySelector('[data-path="__assin"]');
     var cp=document.getElementById("acpf"), fp=app.querySelector('[data-path="__acpf"]');
+    var av=document.getElementById("avisoval"), fav=app.querySelector('[data-path="__avisoval"]'), okv=!temValores()||(av&&av.checked);
+    if(fav) fav.classList.toggle("bad",!okv);
     var okc=c&&c.checked, oka=a && a.value.trim().split(/\s+/).length>=2, okp=cp && String(cp.value).replace(/\D/g,"").length===11;
     if(fc) fc.classList.toggle("bad",!okc); if(fa) fa.classList.toggle("bad",!oka); if(fp) fp.classList.toggle("bad",!okp);
-    if(!okc||!oka||!okp) return;
+    if(!okc||!oka||!okp||!okv){ var b=app.querySelector('.fld.bad'); if(b) b.scrollIntoView({behavior:"smooth",block:"center"}); return; }
+    S.meta.aviso_valores=temValores();
     S.meta.assinatura=a.value.trim(); S.meta.aceite_cpf=cp.value; S.meta.consent=true;
     var blocking=st.filter(function(x){return !x.final && !x.docs && stepMissing(x)>0;});
     if(blocking.length){ var idx=st.indexOf(blocking[0]); S.attempted[blocking[0].id]=true; S.step=idx+1; render(); alertBox("Falta preencher alguns campos obrigatórios nesta etapa."); return; }
