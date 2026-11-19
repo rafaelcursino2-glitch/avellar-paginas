@@ -425,7 +425,7 @@ function gAtender(id){G.fila=D.leads.filter(function(l){return String(l.id)===St
 function gCliente(){
   var l=G.fila[G.i];if(!l){gFim();return;}
   var c=cod(l),im=l.imoveis[0],wa=telWa(l.tel);
-  var opc=OPCOES.filter(function(o){if(o.so&&o.so.indexOf(c)<0)return false;if(o.etapa&&o.etapa!=='IN'&&o.etapa!=='FE'&&ORDEM.indexOf(o.etapa)<=ORDEM.indexOf(c)&&o.id!=='int'&&o.id!=='vtu')return false;return true;});
+  var opc=OPCOES.filter(function(o){if(o.so&&o.so.indexOf(c)<0)return false;if(o.etapa&&o.etapa!=='IN'&&o.etapa!=='FE'&&ORDEM.indexOf(o.etapa)<=ORDEM.indexOf(c)&&o.id!=='int'&&o.id!=='vtu'&&o.id!=='pro')return false;return true;});
   gEl().innerHTML=gTopo()+(G.solo?'':'<div class="g-pos">Cliente '+(G.i+1)+' de '+G.fila.length+'</div>')+
     '<div class="g-cli"><div class="n">'+esc(l.nome||'Sem nome')+'</div><div class="i">'+(im?esc(im.n||im.c):'Sem imóvel')+'</div><div class="s">'+esc(SITUACAO[c]||l.status)+'</div>'+
     (temRet(l)?'<div class="u">Sua última atualização: '+esc(l.ultimo.texto||l.ultimo.marca||'')+'</div>':'')+'</div>'+
